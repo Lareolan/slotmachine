@@ -1,4 +1,6 @@
 ﻿/// <reference path="jquery.js" />
+/// <reference path="webgl-main.js" />
+
 var playerMoney = 1000;
 var winnings = 0;
 var jackpot = 5000;
@@ -19,8 +21,7 @@ var sevens = 0;
 var blanks = 0;
 
 /* Utility function to show Player Stats */
-function showPlayerStats()
-{
+function showPlayerStats() {
     winRatio = winNumber / turn;
     $("#jackpot").text("Jackpot: " + jackpot);
     $("#playerMoney").text("Player Money: " + playerMoney);
@@ -54,7 +55,6 @@ function resetAll() {
     winRatio = 0;
 }
 
-
 /* Check to see if the player won the jackpot */
 function checkJackPot() {
     /* compare two random values */
@@ -84,8 +84,7 @@ function showLossMessage() {
 
 /* Utility function to check if a value falls within a range of bounds */
 function checkRange(value, lowerBounds, upperBounds) {
-    if (value >= lowerBounds && value <= upperBounds)
-    {
+    if (value >= lowerBounds && value <= upperBounds) {
         return value;
     }
     else {
@@ -140,14 +139,12 @@ function Reels() {
 }
 
 /* This function calculates the player's winnings, if any */
-function determineWinnings()
-{
-    if (blanks == 0)
-    {
+function determineWinnings() {
+    if (blanks == 0) {
         if (grapes == 3) {
             winnings = playerBet * 10;
         }
-        else if(bananas == 3) {
+        else if (bananas == 3) {
             winnings = playerBet * 20;
         }
         else if (oranges == 3) {
@@ -195,20 +192,17 @@ function determineWinnings()
         winNumber++;
         showWinMessage();
     }
-    else
-    {
+    else {
         lossNumber++;
         showLossMessage();
     }
-    
 }
 
 /* When the player clicks the spin button the game kicks off */
 $("#spinButton").click(function () {
     playerBet = $("div#betEntry>input").val();
 
-    if (playerMoney == 0)
-    {
+    if (playerMoney == 0) {
         if (confirm("You ran out of Money! \nDo you want to play again?")) {
             resetAll();
             showPlayerStats();
@@ -231,5 +225,8 @@ $("#spinButton").click(function () {
     else {
         alert("Please enter a valid bet amount");
     }
-    
+});
+
+$(document).ready(function () {
+    glMain();
 });
