@@ -59,6 +59,7 @@
   <ItemGroup>
     <Content Include="JavaScript\gl-matrix-min.js" />
     <Content Include="JavaScript\gl-matrix.js" />
+    <Content Include="JavaScript\glMatrix-0.9.5.min.js" />
     <Content Include="Resource\fragment.shader" />
     <Content Include="Resource\vertex.shader" />
     <None Include="Web.Debug.config">

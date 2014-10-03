@@ -21,10 +21,11 @@ var pMatrix = mat4.create();
 
 var shaderProgram;
 function initShaders() {
+    shaderProgram = gl.createProgram();
+
     var fragmentShader = getShader(gl, "fragment");
     var vertexShader = getShader(gl, "vertex");
 
-    shaderProgram = gl.createProgram();
     gl.attachShader(shaderProgram, vertexShader);
     gl.attachShader(shaderProgram, fragmentShader);
     gl.linkProgram(shaderProgram);
@@ -44,15 +45,13 @@ function initShaders() {
 
 
 function getShader(gl, shaderType) {
-    $.get("../Resource/" + shaderType + ".shader", function (data) {
-        shaderProgram[shaderType] = data;
-    })
-
-    function checkShader() {
-        if (shaderProgram[shaderType] === undefined) {
-            setTimeout(checkShader, 200);
+    $.ajax({ 
+        url: "Resource/" + shaderType + ".shader",
+        async: false,
+        success: function (data) {
+            shaderProgram[shaderType] = data;
         }
-    }
+    })
 
     var shader;
     if (shaderType == "fragment") {
@@ -123,26 +122,29 @@ function initBuffers() {
 function drawScene() {
     gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
+
+    mat4.perspective(pMatrix, 45.0, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0);
+
     mat4.identity(mvMatrix);
 
-    mat4.translate(mvMatrix, [-1.5, 0.0, -7.0]);
+    var translation = vec3.create();
 
+    //draw the triangle
+    vec3.set(translation, -1.5, 1.0, -7.0);
+    mat4.translate(mvMatrix, mvMatrix, translation);
     gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer);
     gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, triangleVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
     setMatrixUniforms();
-
     gl.drawArrays(gl.TRIANGLES, 0, triangleVertexPositionBuffer.numItems);
-    mat4.translate(mvMatrix, [3.0, 0.0, 0.0]);
 
+    // draw the square
+    vec3.set(translation, 3.0, 0.0, 0.0);
+    mat4.translate(mvMatrix, mvMatrix, translation);
     gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
     gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
     setMatrixUniforms();
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems);
 }
-
 
 $(document).ready(function () {
     webGLStart();
