@@ -57,8 +57,8 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="JavaScript\gl-matrix-min.js" />
-    <Content Include="JavaScript\gl-matrix.js" />
+    <Content Include="Scripts\gl-matrix-min.js" />
+    <Content Include="Scripts\gl-matrix.js" />
     <Content Include="JavaScript\glMatrix-0.9.5.min.js" />
     <Content Include="Resource\fragment.shader" />
     <Content Include="Resource\vertex.shader" />
@@ -73,11 +73,12 @@
     <Content Include="css\main.css" />
     <Content Include="img\cherry_640.png" />
     <Content Include="index.html" />
+    <Content Include="Scripts\webgl-main.js" />
+    <Content Include="Scripts\jquery.js" />
+    <Content Include="Scripts\main.js" />
+    <Content Include="JavaScript\webgl-libs.js" />
     <Content Include="JavaScript\webgl-main.js" />
-    <Content Include="js\jquery.js" />
-    <Content Include="js\main.js" />
-    <Content Include="js\webgl-libs.js" />
-    <Content Include="js\webgl-main.js" />
+    <None Include="Scripts\_references.js" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
