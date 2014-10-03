@@ -1,6 +1,7 @@
 ﻿/// <reference path="jquery.js" />
 /// <reference path="webgl-main.js" />
 
+
 var playerMoney = 1000;
 var winnings = 0;
 var jackpot = 5000;
@@ -225,8 +226,4 @@ $("#spinButton").click(function () {
     else {
         alert("Please enter a valid bet amount");
     }
-});
-
-$(document).ready(function () {
-    glMain();
 });
