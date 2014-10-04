@@ -253,6 +253,11 @@ function drawScene() {
     vec3.set(translation, 0.0, 0.0, -5.0);
     mat4.translate(mvMatrix, mvMatrix, translation);
 
+
+    vec3.set(rotation, 0, 1, 0);
+    mat4.rotate(mvMatrix, mvMatrix, degToRad(30), rotation);
+
+
     vec3.set(translation, 0.0, 0.0, -drumRadius);
     mat4.translate(mvMatrix, mvMatrix, translation);
 
@@ -288,26 +293,25 @@ function drawScene() {
 
 
 
+    for (var i = 0; i < 16; i++) {
+        // 2nd square
+        mvPushMatrix();
 
-    // 2nd square
-    mvPushMatrix();
+        vec3.set(translation, 0.0, 0.0, -drumRadius);
+        mat4.translate(mvMatrix, mvMatrix, translation);
 
-    vec3.set(translation, 0.0, 0.0, -drumRadius);
-    mat4.translate(mvMatrix, mvMatrix, translation);
+        vec3.set(rotation, 1, 0, 0);
+        mat4.rotate(mvMatrix, mvMatrix, degToRad(i*22.5), rotation);
 
-    vec3.set(rotation, 1, 0, 0);
-    mat4.rotate(mvMatrix, mvMatrix, degToRad(22.5), rotation);
+        vec3.set(translation, 0.0, 0.0, drumRadius);
+        mat4.translate(mvMatrix, mvMatrix, translation);
 
-    vec3.set(translation, 0.0, 0.0, drumRadius);
-    mat4.translate(mvMatrix, mvMatrix, translation);
-
-    setMatrixUniforms();
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems);
-    mvPopMatrix();
-
-
+        setMatrixUniforms();
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems);
+        mvPopMatrix();
+    }
+/*
     // 3rd square
-
     mvPushMatrix();
     vec3.set(translation, 0.0, 0.0, -drumRadius);
     mat4.translate(mvMatrix, mvMatrix, translation);
@@ -321,7 +325,7 @@ function drawScene() {
     setMatrixUniforms();
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems);
     mvPopMatrix();
-
+*/
 
 
     mvPopMatrix();
@@ -334,7 +338,7 @@ function animate() {
 
 //        rTri += (90 * elapsed) / 1000.0;
 //        rSquare += (75 * elapsed) / 1000.0;
-        xRot += (90 * elapsed) / 1000.0;
+        xRot += (30 * elapsed) / 1000.0;
         yRot += (60 * elapsed) / 1000.0;
         zRot += (30 * elapsed) / 1000.0;
     }
