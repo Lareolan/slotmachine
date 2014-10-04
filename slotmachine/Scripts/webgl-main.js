@@ -1,10 +1,6 @@
-﻿var triangleVertexPositionBuffer;
-var triangleVertexColorBuffer;
-var squareVertexPositionBuffer;
-var squareVertexColorBuffer;
+﻿var objectVertexPositionBuffer;
+var objectVertexColorBuffer;
 var gl;
-var rTri = 0;
-var rSquare = 0;
 var lastTime = 0;
 var xRot = 0;
 var yRot = 0;
@@ -126,34 +122,9 @@ function webGLStart() {
 }
 
 function initBuffers() {
-    // TRIANGLE
-    triangleVertexPositionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer);
-
-    var vertices = [
-         0.0, 1.0, 0.0,
-        -1.0, -1.0, 0.0,
-         1.0, -1.0, 0.0
-    ];
-
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-    triangleVertexPositionBuffer.itemSize = 3;
-    triangleVertexPositionBuffer.numItems = 3;
-
-    triangleVertexColorBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexColorBuffer);
-    var colors = [
-        1.0, 0.0, 0.0, 1.0,
-        0.0, 1.0, 0.0, 1.0,
-        0.0, 0.0, 1.0, 1.0
-    ];
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
-    triangleVertexColorBuffer.itemSize = 4;
-    triangleVertexColorBuffer.numItems = 3;
-
     // SQUARE
-    squareVertexPositionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
+    objectVertexPositionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, objectVertexPositionBuffer);
     vertices = [
          1.0, 1.0, 0.0,
         -1.0, 1.0, 0.0,
@@ -161,11 +132,11 @@ function initBuffers() {
         -1.0, -1.0, 0.0
     ];
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-    squareVertexPositionBuffer.itemSize = 3;
-    squareVertexPositionBuffer.numItems = 4;
+    objectVertexPositionBuffer.itemSize = 3;
+    objectVertexPositionBuffer.numItems = 4;
 
-    squareVertexTextureCoordBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexTextureCoordBuffer);
+    objectVertexTextureCoordBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, objectVertexTextureCoordBuffer);
     var textureCoords = [
       1.0, 1.0,
       0.0, 1.0,
@@ -174,18 +145,18 @@ function initBuffers() {
     ];
 
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
-    squareVertexTextureCoordBuffer.itemSize = 2;
-    squareVertexTextureCoordBuffer.numItems = 4;
+    objectVertexTextureCoordBuffer.itemSize = 2;
+    objectVertexTextureCoordBuffer.numItems = 4;
 /*
-    squareVertexColorBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexColorBuffer);
+    objectVertexColorBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, objectVertexColorBuffer);
     colors = []
     for (var i = 0; i < 4; i++) {
         colors = colors.concat([0.5, 0.5, 1.0, 1.0]);
     }
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
-    squareVertexColorBuffer.itemSize = 4;
-    squareVertexColorBuffer.numItems = 4;
+    objectVertexColorBuffer.itemSize = 4;
+    objectVertexColorBuffer.numItems = 4;
 */
 }
 
@@ -226,27 +197,6 @@ function drawScene() {
     var translation = vec3.create();
     var rotation = vec3.create();
 
-    //draw the triangle
-
-/*
-//    vec3.set(translation, -1.5, 1.0, -7.0);
-//    mat4.translate(mvMatrix, mvMatrix, translation);
-
-    mvPushMatrix();
-    vec3.set(rotation, 0, 1, 0);
-    mat4.rotate(mvMatrix, mvMatrix, degToRad(rTri), rotation);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer);
-    gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, triangleVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexColorBuffer);
-    gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, triangleVertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-    setMatrixUniforms();
-    gl.drawArrays(gl.TRIANGLES, 0, triangleVertexPositionBuffer.numItems);
-    mvPopMatrix();
-*/
-
     // draw the square
 //    vec3.set(translation, 3.0, 0.0, 0.0);
 //    mat4.translate(mvMatrix, mvMatrix, translation);
@@ -275,21 +225,21 @@ function drawScene() {
     
 //    mat4.rotate(mvMatrix, mvMatrix, degToRad(rSquare), rotation);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
-    gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, objectVertexPositionBuffer);
+    gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, objectVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-//    gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexColorBuffer);
-//    gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, squareVertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+//    gl.bindBuffer(gl.ARRAY_BUFFER, objectVertexColorBuffer);
+//    gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, objectVertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexTextureCoordBuffer);
-    gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, squareVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, objectVertexTextureCoordBuffer);
+    gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, objectVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, neheTexture);
     gl.uniform1i(shaderProgram.samplerUniform, 0);
 
     setMatrixUniforms();
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, objectVertexPositionBuffer.numItems);
 
 
 
@@ -307,26 +257,9 @@ function drawScene() {
         mat4.translate(mvMatrix, mvMatrix, translation);
 
         setMatrixUniforms();
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, objectVertexPositionBuffer.numItems);
         mvPopMatrix();
     }
-/*
-    // 3rd square
-    mvPushMatrix();
-    vec3.set(translation, 0.0, 0.0, -drumRadius);
-    mat4.translate(mvMatrix, mvMatrix, translation);
-
-    vec3.set(rotation, 1, 0, 0);
-    mat4.rotate(mvMatrix, mvMatrix, degToRad(45), rotation);
-
-    vec3.set(translation, 0.0, 0.0, drumRadius);
-    mat4.translate(mvMatrix, mvMatrix, translation);
-
-    setMatrixUniforms();
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems);
-    mvPopMatrix();
-*/
-
 
     mvPopMatrix();
 }
@@ -336,8 +269,6 @@ function animate() {
     if (lastTime != 0) {
         var elapsed = timeNow - lastTime;
 
-//        rTri += (90 * elapsed) / 1000.0;
-//        rSquare += (75 * elapsed) / 1000.0;
         xRot += (30 * elapsed) / 1000.0;
         yRot += (60 * elapsed) / 1000.0;
         zRot += (30 * elapsed) / 1000.0;
