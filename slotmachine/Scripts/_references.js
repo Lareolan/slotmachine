@@ -4,3 +4,4 @@
 /// <reference path="../Scripts/webgl-main.js" />
 /// <reference path="../Scripts/jquery.js" />
 /// <reference path="../Scripts/main.js" />
+/// <reference path="../Scripts/webgl-utils.js" />

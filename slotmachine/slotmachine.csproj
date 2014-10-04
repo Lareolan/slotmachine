@@ -79,6 +79,7 @@
     <Content Include="JavaScript\webgl-libs.js" />
     <Content Include="JavaScript\webgl-main.js" />
     <None Include="Scripts\_references.js" />
+    <Content Include="Scripts\webgl-utils.js" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>

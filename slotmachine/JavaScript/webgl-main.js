@@ -1,4 +1,4 @@
-﻿/// <reference path="jquery.js" />
+﻿/// <reference path="../Scripts/jquery.js" />
 
 $(document).ready(function () {
     glMain();
