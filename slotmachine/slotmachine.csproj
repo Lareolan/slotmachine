@@ -57,6 +57,14 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="img\banana_512.png" />
+    <Content Include="img\bars_512.png" />
+    <Content Include="img\bells_512.png" />
+    <Content Include="img\blank_512.png" />
+    <Content Include="img\cherry_512.png" />
+    <Content Include="img\grapes_512.png" />
+    <Content Include="img\orange_512.png" />
+    <Content Include="img\seven_512.png" />
     <Content Include="Scripts\gl-matrix-min.js" />
     <Content Include="Scripts\gl-matrix.js" />
     <Content Include="JavaScript\glMatrix-0.9.5.min.js" />
@@ -71,7 +79,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="css\main.css" />
-    <Content Include="img\cherry_640.png" />
     <Content Include="index.html" />
     <Content Include="Scripts\webgl-main.js" />
     <Content Include="Scripts\jquery.js" />
@@ -79,6 +86,7 @@
     <Content Include="JavaScript\webgl-libs.js" />
     <Content Include="JavaScript\webgl-main.js" />
     <None Include="Scripts\_references.js" />
+    <Content Include="Scripts\webgl-objects.js" />
     <Content Include="Scripts\webgl-utils.js" />
     <Content Include="Web.config" />
   </ItemGroup>

@@ -5,3 +5,7 @@
 /// <reference path="~/Scripts/jquery.js" />
 /// <reference path="~/Scripts/main.js" />
 /// <reference path="~/Scripts/webgl-utils.js" />
+/// <reference path="../javascript/glmatrix-0.9.5.min.js" />
+/// <reference path="../javascript/webgl-libs.js" />
+/// <reference path="../javascript/webgl-main.js" />
+/// <reference path="~/Scripts/webgl-objects.js" />

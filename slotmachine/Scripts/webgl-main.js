@@ -1,12 +1,31 @@
 ﻿var objectVertexPositionBuffer;
-var objectVertexColorBuffer;
+var objectVertexTextureCoordBuffer;
 var gl;
 var lastTime = 0;
 var xRot = 0;
 var yRot = 0;
 var zRot = 0;
 
-var drumRadius = 2 / Math.tan(degToRad(22.5));
+//var angleDelta = 22.5;
+//var drumRadius = 2 / Math.tan(degToRad(angleDelta));
+var angleDelta = 45;
+var drumRadius = 2.41 / Math.tan(degToRad(angleDelta));
+var drumTileCount = 360 / angleDelta;
+
+
+var textureURLs = {
+    grapes: "../img/grapes_512.jpg",
+    bananas: "../img/banana_512.jpg",
+    oranges: "../img/orange_512.jpg",
+    cherries: "../img/cherry_512.jpg",
+    bars: "../img/bars_512.jpg",
+    bells: "../img/bells_512.jpg",
+    sevens: "../img/seven_512.jpg",
+    blanks: "../img/blank_512.jpg"
+};
+
+var textureNameList = ["grapes", "bananas", "oranges", "cherries", "bars", "bells", "sevens", "blanks"];
+
 
 
 function initGL(canvas) {
@@ -53,6 +72,7 @@ function initShaders() {
 
     shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
     shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+    shaderProgram.samplerUniform = gl.getUniformLocation(shaderProgram, "uSampler");
 }
 
 
@@ -111,14 +131,144 @@ function webGLStart() {
     var canvas = document.getElementById("webgl-canvas");
     initGL(canvas);
     initShaders();
+//    initTextures();
     initBuffers();
-    initTextures();
 
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.enable(gl.DEPTH_TEST);
 
-//    drawScene();
-    tick();
+//    while (!neheTexture.loaded);
+//    alert(neheTexture.loaded);
+
+
+
+//    var translation = vec3.create();
+
+//    alert("X: " + translation[0] + "\nY: " + translation[1] + "\nZ: " + translation[2] + "\n" + translation.length);
+/*
+    var vertices = [
+         1.0, 1.0, 0.0,
+        -1.0, 1.0, 0.0,
+         1.0, -1.0, 0.0,
+        -1.0, -1.0, 0.0
+    ];
+*/
+    var textureCoords = [
+      1.0, 1.0,
+      0.0, 1.0,
+      1.0, 0.0,
+      0.0, 0.0
+    ];
+
+
+    var vertices = [
+        vec3.fromValues(1.0, 1.0, 0.0),
+        vec3.fromValues(-1.0, 1.0, 0.0),
+        vec3.fromValues(1.0, -1.0, 0.0),
+        vec3.fromValues(-1.0, -1.0, 0.0)
+    ];
+
+    var vertArray = Array(drumTileCount);
+    var texCoordsArray = [];
+    var textureArray = [];
+
+    initTextures(textureArray);
+    
+
+    var transformationMatrix = mat4.create();
+    var newXYZ = vec3.create();
+    var rotation = vec3.create();
+    var translation = vec3.create();
+
+    for (var i = 0; i < drumTileCount; i++) {
+        vertArray[i] = [];
+//        texCoordsArray[i] = [];
+
+        for (var j = 0; j < vertices.length; j++) {
+            mat4.identity(transformationMatrix);
+            vec3.set(translation, 0.0, 0.0, -drumRadius);
+            mat4.translate(transformationMatrix, transformationMatrix, translation);
+
+            vec3.set(rotation, 1, 0, 0);
+            mat4.rotate(transformationMatrix, transformationMatrix, -degToRad(i * angleDelta), rotation);
+
+            vec3.set(translation, 0.0, 0.0, drumRadius);
+            mat4.translate(transformationMatrix, transformationMatrix, translation);
+
+            vec3.transformMat4(newXYZ, vertices[j], transformationMatrix);
+
+            vertArray[i].push(vec3.clone(newXYZ));
+        }
+        texCoordsArray.push(textureCoords);
+//        textureArray.push(neheTexture);
+    }
+
+    setTimeout(drawObject);
+
+    var Obj3d = new webgl.object3d(gl);
+    var initXSpeed = 180;
+
+    var time = new Date().getTime();
+
+    function drawObject() {
+        if (textureArray.loaded) {
+//            if (!Obj3d.initGeometry([vertices], [textureCoords]))
+            if (!Obj3d.initGeometry(vertArray, texCoordsArray))
+                alert("initGeometry() failed!")
+//            if (!Obj3d.assignTextures([neheTexture]))
+            if (!Obj3d.assignTextures(textureArray))
+                alert("assignTextures() failed!")
+            Obj3d.assignShaderProgram(shaderProgram);
+
+
+
+            gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+            mat4.perspective(pMatrix, 45.0, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0);
+
+            mat4.identity(mvMatrix);
+
+            vec3.set(translation, 0.0, 0.0, -8.0);
+            mat4.translate(mvMatrix, mvMatrix, translation);
+
+            vec3.set(rotation, 0, 1, 0);
+            mat4.rotate(mvMatrix, mvMatrix, degToRad(30), rotation);
+
+
+
+            if (!Obj3d.draw())
+                alert("draw() failed!");
+            Obj3d.setRotation([30, 0, 0]);
+            Obj3d.setRotationSpeed([initXSpeed, 0, 0]);
+            Obj3d.startAnimation();
+            objTick();
+        } else {
+            var loaded = true;
+            for (var i = 0; i < textureArray.length; i++) {
+                if (!textureArray[i].loaded) {
+                    loaded = false;
+                }
+            }
+            textureArray.loaded = loaded;
+            setTimeout(drawObject, 100);
+        }
+    }
+
+    function objTick() {
+        requestAnimFrame(objTick);
+        Obj3d.draw();
+        if (new Date().getTime() - time > 3000) {
+            if (initXSpeed > 0) {
+                initXSpeed -= 2;
+                Obj3d.setRotationSpeed([initXSpeed, 0, 0]);
+            } else {
+                Obj3d.stopAnimation();
+            }
+        }
+    }
+
+//    tick();
 }
 
 function initBuffers() {
@@ -161,22 +311,47 @@ function initBuffers() {
 }
 
 var neheTexture;
-function initTextures() {
+
+function initTextures(texArray) {
+/*
     neheTexture = gl.createTexture();
     neheTexture.image = new Image();
+
     neheTexture.image.onload = function () {
         handleLoadedTexture(neheTexture)
+        neheTexture.loaded = true;
+//        callback.call(this);
     }
 
     neheTexture.image.src = "../img/cherry_640.png";
+*/
+    for (var i = 0; i < textureNameList.length; i++) {
+        texArray[i] = loadTextures(textureURLs[textureNameList[i]]);
+    }
+}
+
+function loadTextures(url) {
+    var texture = gl.createTexture();
+    texture.image = new Image();
+
+    texture.image.onload = function () {
+        handleLoadedTexture(texture)
+        texture.loaded = true;
+        //        callback.call(this);
+    }
+
+    texture.image.src = url;
+    texture.url = url;
+    return texture;
 }
 
 function handleLoadedTexture(texture) {
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+    gl.generateMipmap(gl.TEXTURE_2D);
     gl.bindTexture(gl.TEXTURE_2D, null);
 }
 
@@ -194,13 +369,14 @@ function drawScene() {
 
     mat4.identity(mvMatrix);
 
-    var translation = vec3.create();
-    var rotation = vec3.create();
+    var translation = vec3.fromValues(0.0, 0.0, -5.0);
+    var rotation = vec3.fromValues(0, 1, 0);
 
     // draw the square
 //    vec3.set(translation, 3.0, 0.0, 0.0);
 //    mat4.translate(mvMatrix, mvMatrix, translation);
-    vec3.set(translation, 0.0, 0.0, -5.0);
+
+//    vec3.set(translation, 0.0, 0.0, -5.0);
     mat4.translate(mvMatrix, mvMatrix, translation);
 
 
@@ -228,9 +404,6 @@ function drawScene() {
     gl.bindBuffer(gl.ARRAY_BUFFER, objectVertexPositionBuffer);
     gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, objectVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-//    gl.bindBuffer(gl.ARRAY_BUFFER, objectVertexColorBuffer);
-//    gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, objectVertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
     gl.bindBuffer(gl.ARRAY_BUFFER, objectVertexTextureCoordBuffer);
     gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, objectVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
@@ -243,7 +416,7 @@ function drawScene() {
 
 
 
-    for (var i = 0; i < 16; i++) {
+    for (var i = 1; i < drumTileCount; i++) {
         // 2nd square
         mvPushMatrix();
 
@@ -251,7 +424,7 @@ function drawScene() {
         mat4.translate(mvMatrix, mvMatrix, translation);
 
         vec3.set(rotation, 1, 0, 0);
-        mat4.rotate(mvMatrix, mvMatrix, degToRad(i*22.5), rotation);
+        mat4.rotate(mvMatrix, mvMatrix, degToRad(i * angleDelta), rotation);
 
         vec3.set(translation, 0.0, 0.0, drumRadius);
         mat4.translate(mvMatrix, mvMatrix, translation);
