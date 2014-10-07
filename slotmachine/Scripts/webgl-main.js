@@ -108,7 +108,7 @@
 
     this.stop = function () {
         stopping = true;
-        result = Math.floor((Math.random() * 8) + 1);
+        result = Math.floor(Math.random() * 8);
         console.log("Drum result: " + textureNameList[result]);
 
         currentItem = ((result - 3) < 0) ? (result - 3) + 8 : (result - 3);
@@ -231,12 +231,12 @@ var rotation = vec3.create();
 
         return shader;
     }
-
+/*
     function setMatrixUniforms() {
         gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
         gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
     }
-
+*/
     function mvPushMatrix() {
         var copy = mat4.clone(mvMatrix);
         //    mat4.set(mvMatrix, copy);
@@ -258,8 +258,6 @@ var rotation = vec3.create();
         var canvas = document.getElementById("webgl-canvas");
         initGL(canvas);
         initShaders();
-        //    initTextures();
-        initBuffers();
 
         var textureArray = [];
         initTextures(textureArray);
@@ -267,83 +265,11 @@ var rotation = vec3.create();
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.enable(gl.DEPTH_TEST);
 
-        //    while (!neheTexture.loaded);
-        //    alert(neheTexture.loaded);
-
-
-
-        //    var translation = vec3.create();
-
-        //    alert("X: " + translation[0] + "\nY: " + translation[1] + "\nZ: " + translation[2] + "\n" + translation.length);
-        /*
-            var vertices = [
-                 1.0, 1.0, 0.0,
-                -1.0, 1.0, 0.0,
-                 1.0, -1.0, 0.0,
-                -1.0, -1.0, 0.0
-            ];
-        */
-/*
-        var textureCoords = [
-          1.0, 1.0,
-          0.0, 1.0,
-          1.0, 0.0,
-          0.0, 0.0
-        ];
-
-
-        var vertices = [
-            vec3.fromValues(1.0, 1.0, 0.0),
-            vec3.fromValues(-1.0, 1.0, 0.0),
-            vec3.fromValues(1.0, -1.0, 0.0),
-            vec3.fromValues(-1.0, -1.0, 0.0)
-        ];
-
-        var vertArray = Array(drumTileCount);
-        var texCoordsArray = [];
-
-
-
-        var transformationMatrix = mat4.create();
-        var newXYZ = vec3.create();
-
-        for (var i = 0; i < drumTileCount; i++) {
-            vertArray[i] = [];
-            //        texCoordsArray[i] = [];
-
-            for (var j = 0; j < vertices.length; j++) {
-                mat4.identity(transformationMatrix);
-                vec3.set(translation, 0.0, 0.0, -drumRadius);
-                mat4.translate(transformationMatrix, transformationMatrix, translation);
-
-                vec3.set(rotation, 1, 0, 0);
-                mat4.rotate(transformationMatrix, transformationMatrix, -degToRad(i * angleDelta), rotation);
-
-                vec3.set(translation, 0.0, 0.0, drumRadius);
-                mat4.translate(transformationMatrix, transformationMatrix, translation);
-
-                vec3.transformMat4(newXYZ, vertices[j], transformationMatrix);
-
-                vertArray[i].push(vec3.clone(newXYZ));
-            }
-            texCoordsArray.push(textureCoords);
-            //        textureArray.push(neheTexture);
-        }
-*/
         setTimeout(drawObject);
 
-//        var drums = new Array(3);
-
-//        for (var i = 0; i < drums.length; i++) {
-//            drums[i] = new webgl.object3d(gl);
-//        }
-
-//        var Obj3d = new webgl.object3d(gl);
         var initXSpeed = 180;
 
         var time = new Date().getTime();
-//        var animStopping = false;
-//        var selectedItem;
         var deceleration;
         var lastFrameTime;
 
@@ -372,12 +298,8 @@ var rotation = vec3.create();
 
                 drums[0].setPosition([-2.1, 0.0, 0.0]);
                 drums[0].draw(mvMatrix);
-//                vec3.set(translation, -2.1, 0.0, 0.0);
-//                mat4.translate(mvMatrix, mvMatrix, translation);
                 drums[1].setPosition([0.0, 0.0, 0.0]);
                 drums[1].draw(mvMatrix);
-//                vec3.set(translation, 4.2, 0.0, 0.0);
-//                mat4.translate(mvMatrix, mvMatrix, translation);
                 drums[2].setPosition([2.1, 0.0, 0.0]);
                 drums[2].draw(mvMatrix);
 
@@ -385,8 +307,7 @@ var rotation = vec3.create();
                     drums[drum].spin();
                 }
 
-                    tick();
-//                }
+                tick();
             } else {
                 var loaded = true;
                 for (var i = 0; i < textureArray.length; i++) {
@@ -398,146 +319,9 @@ var rotation = vec3.create();
                 setTimeout(drawObject, 100);
             }
         }
-
-        function objTick() {
-/*
-            requestAnimFrame(objTick);
-
-            for (var drum = 0; drum < drums.length; drum++) {
-                drums[drum].draw();
-
-                if ((new Date().getTime() - time > Math.random()*8000+2000) && (!drums[drum].animStopping)) {
-                    drums[drum].animStopping = true;
-                    drums[drum].selectedItem = Math.round(drums[drum].getRotation()[0] / angleDelta);
-                    lastFrameTime = new Date().getTime();
-                    initXSpeed = initXSpeed / 2;
-
-                    deceleration = 360 / 4;
-                    console.log("Selected for drum: "+drum + " - " + textureNameList[drums[drum].selectedItem]);
-                }
-                if (drums[drum].animStopping) {
-                    var currentFrameTime = new Date().getTime();
-                    var elapsed = currentFrameTime - lastFrameTime;
-
-                    if (initXSpeed > 0) {
-                        if ((elapsed > 1000) && (initXSpeed > 30)) {
-                            initXSpeed = initXSpeed / 2;
-                            drums[drum].setRotationSpeed([initXSpeed, 0, 0]);
-                            lastFrameTime = currentFrameTime;
-                        } else {
-                            if (initXSpeed <= 30) {
-                                var currentItem = drums[drum].getRotation()[0];
-                                if ((currentItem >= drums[drum].selectedItem * angleDelta) && (currentItem <= drums[drum].selectedItem * angleDelta + 10)) {
-                                    initXSpeed = 0;
-                                }
-                            }
-                        }
-                    } else {
-                        drums[drum].stopAnimation();
-                        drums[drum].setRotation([drums[drum].selectedItem * angleDelta, 0, 0]);
-                    }
-                }
-            }
-
-/*
-            Obj3d.draw();
-            if ((new Date().getTime() - time > 3000) && (!animStopping)) {
-                animStopping = true;
-                selectedItem = Math.round(Obj3d.getRotation()[0] / angleDelta);
-                lastFrameTime = new Date().getTime();
-                initXSpeed = initXSpeed / 2;
-
-                deceleration = 360 / 4;
-                console.log("Selected: " + selectedItem);
-            }
-            if (animStopping) {
-                var currentFrameTime = new Date().getTime();
-                var elapsed = currentFrameTime - lastFrameTime;
-
-                if (initXSpeed > 0) {
-                    if ((elapsed > 1000) && (initXSpeed > 30)) {
-                        initXSpeed = initXSpeed / 2;
-                        Obj3d.setRotationSpeed([initXSpeed, 0, 0]);
-                        lastFrameTime = currentFrameTime;
-                    } else {
-                        if (initXSpeed <= 30) {
-                            var currentItem = Obj3d.getRotation()[0];
-                            if ((currentItem >= selectedItem * angleDelta) && (currentItem <= selectedItem * angleDelta + 10)) {
-                                initXSpeed = 0;
-                            }
-                        }
-                    }
-                } else {
-                    Obj3d.stopAnimation();
-                    Obj3d.setRotation([selectedItem * angleDelta, 0, 0]);
-                }
-            }
-*/
-        }
-        // a = v/t = 180/2 = 90/sec^2
-        // v = d/t = 180/sec
-        // at = d/t
-        // d = at^2
-        // a = d/t^2
-
-
-        //    tick();
     }
-
-    function initBuffers() {
-        // SQUARE
-        objectVertexPositionBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, objectVertexPositionBuffer);
-        vertices = [
-             1.0, 1.0, 0.0,
-            -1.0, 1.0, 0.0,
-             1.0, -1.0, 0.0,
-            -1.0, -1.0, 0.0
-        ];
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-        objectVertexPositionBuffer.itemSize = 3;
-        objectVertexPositionBuffer.numItems = 4;
-
-        objectVertexTextureCoordBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, objectVertexTextureCoordBuffer);
-        var textureCoords = [
-          1.0, 1.0,
-          0.0, 1.0,
-          1.0, 0.0,
-          0.0, 0.0
-        ];
-
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
-        objectVertexTextureCoordBuffer.itemSize = 2;
-        objectVertexTextureCoordBuffer.numItems = 4;
-        /*
-            objectVertexColorBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, objectVertexColorBuffer);
-            colors = []
-            for (var i = 0; i < 4; i++) {
-                colors = colors.concat([0.5, 0.5, 1.0, 1.0]);
-            }
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
-            objectVertexColorBuffer.itemSize = 4;
-            objectVertexColorBuffer.numItems = 4;
-        */
-    }
-
-    var neheTexture;
 
     function initTextures(texArray) {
-        /*
-            neheTexture = gl.createTexture();
-            neheTexture.image = new Image();
-        
-            neheTexture.image.onload = function () {
-                handleLoadedTexture(neheTexture)
-                neheTexture.loaded = true;
-        //        callback.call(this);
-            }
-        
-            neheTexture.image.src = "../img/cherry_640.png";
-        */
         for (var i = 0; i < textureNameList.length; i++) {
             texArray[i] = loadTextures(textureURLs[textureNameList[i]]);
         }
@@ -588,8 +372,6 @@ var rotation = vec3.create();
         for (var drum = 0; drum < drumCount; drum++) {
             drums[drum].draw(mvMatrix);
         }
-//        drawScene();
-//        animate();
     }
 
 

@@ -133,15 +133,12 @@ window.webgl.object3d = function (gl) {
         var objMvMatrix = mat4.create();
         mat4.identity(objMvMatrix);
 
-//        var drumRadius = 2.41;
-
         for (var i = 0; i < objectVertexPositionBuffer.length; i++) {
             mat4.identity(objMvMatrix);
             if (movementMatrix !== undefined) {
                 mat4.multiply(objMvMatrix, objMvMatrix, movementMatrix);
             }
 
-//            vec3.set(translation, 0, 0, (-drumRadius));
             vec3.set(translation, objectPosition.x, objectPosition.y, objectPosition.z);
             mat4.translate(objMvMatrix, objMvMatrix, translation);
 
@@ -155,7 +152,6 @@ window.webgl.object3d = function (gl) {
             vec3.set(rotation, 0, 0, 1);
             mat4.rotate(objMvMatrix, objMvMatrix, degToRad(animationRotate.z), rotation);
 
-//            vec3.set(translation, 0.0, 0.0, drumRadius);
             vec3.set(translation, -objectPosition.x, -objectPosition.y, -objectPosition.z);
             mat4.translate(objMvMatrix, objMvMatrix, translation);
 
@@ -165,18 +161,26 @@ window.webgl.object3d = function (gl) {
             gl.bindBuffer(gl.ARRAY_BUFFER, objectVertexTextureCoordBuffer[i]);
             gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, objectVertexTextureCoordBuffer[i].itemSize, gl.FLOAT, false, 0, 0);
 
-//            gl.activeTexture(gl.TEXTURE0 + i);
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, textures[i]);
             gl.uniform1i(shaderProgram.samplerUniform, 0);
 
-//            setMatrixUniforms();
-            gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
-            gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, objMvMatrix);
+            setMatrixUniforms(pMatrix, objMvMatrix);
+//            gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
+//            gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, objMvMatrix);
 
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, objectVertexPositionBuffer[i].numItems);
         }
         return true;
+    }
+
+    /**
+     * This internal function applies the projection and movement matrices to the shader program, and pushes those to the card to be
+     * used for rendering the next sequence of geometry.
+     */
+    function setMatrixUniforms(pMatrix, mvMatrix) {
+        gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
+        gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
     }
 
     /**
@@ -193,7 +197,7 @@ window.webgl.object3d = function (gl) {
                 animationRotate.y += (animationRotate.ySpeed * elapsed) / 1000.0;
                 animationRotate.z += (animationRotate.zSpeed * elapsed) / 1000.0;
 
-                // Just a little house cleaning to keep all the values to manageable size.
+                // Just a little house cleaning to keep all the values to manageable, easy to use size.
                 if (animationRotate.x > 360) {
                     animationRotate.x %= 360;
                 }
@@ -304,12 +308,20 @@ window.webgl.object3d = function (gl) {
         animationTranslate.zSpeed = translationSpeed[2];
     }
 
+    /**
+     * Sets the position of the object stored in this pseudo-class.
+     * @param position is an array with 3 elements providing the relative x, y and z coordinates of the object.
+     */
     this.setPosition = function (position) {
         objectPosition.x = position[0];
         objectPosition.y = position[1];
         objectPosition.z = position[2];
     }
 
+    /**
+     * Returns the position of the object
+     * @returns An array with 3 elements providing the relative x, y and z position of the object
+     */
     this.getPosition = function () {
         return new Array(objectPosition.x, objectPosition.y, objectPosition.z);
     }
@@ -331,6 +343,11 @@ window.webgl.object3d = function (gl) {
         return result;
     }
 
+    /**
+     * A simple utility function to convert angle from degrees to radians for use with Math library's trigonometry functions.
+     * @param degrees The angle in degrees to be converted.
+     * @returns The converted angle in radians.
+     */
     function degToRad(degrees) {
         return degrees * Math.PI / 180;
     }
