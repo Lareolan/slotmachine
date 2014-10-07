@@ -1,4 +1,80 @@
-﻿    var objectVertexPositionBuffer;
+﻿function DrumObject(glContext) {
+    // Local storage variables
+    var drum;
+    var gl = glContext;
+    var drumTileCount = 8;
+    var angleDelta = 360 / drumTileCount;
+    var drumRadius = 2.41 / Math.tan(degToRad(angleDelta));
+//    var drumRadius = 3.5 / Math.tan(degToRad(angleDelta));
+
+    var vertArray = Array(drumTileCount);
+    var texCoordsArray = [];
+    var textureArray = [];
+
+
+    var textureCoords = [
+      1.0, 1.0,
+      0.0, 1.0,
+      1.0, 0.0,
+      0.0, 0.0
+    ];
+    var vertices = [
+        vec3.fromValues(1.0, 1.0, 0.0),
+        vec3.fromValues(-1.0, 1.0, 0.0),
+        vec3.fromValues(1.0, -1.0, 0.0),
+        vec3.fromValues(-1.0, -1.0, 0.0)
+    ];
+//    DrumObject.prototype = {
+        this.create = function(textureArray, shaderProgram) {
+            var transformationMatrix = mat4.create();
+            var translation = vec3.create();
+            var rotation = vec3.create();
+            var newXYZ = vec3.create();
+
+            for (var i = 0; i < drumTileCount; i++) {
+                vertArray[i] = [];
+
+                for (var j = 0; j < vertices.length; j++) {
+                    mat4.identity(transformationMatrix);
+                    vec3.set(translation, 0.0, 0.0, -drumRadius);
+                    mat4.translate(transformationMatrix, transformationMatrix, translation);
+
+                    vec3.set(rotation, 1, 0, 0);
+                    mat4.rotate(transformationMatrix, transformationMatrix, -degToRad(i * angleDelta), rotation);
+
+                    vec3.set(translation, 0.0, 0.0, drumRadius);
+                    mat4.translate(transformationMatrix, transformationMatrix, translation);
+
+                    vec3.transformMat4(newXYZ, vertices[j], transformationMatrix);
+
+                    vertArray[i].push(vec3.clone(newXYZ));
+                }
+                texCoordsArray.push(textureCoords);
+            }
+
+            drum = new webgl.object3d(gl);
+            if (!drum.initGeometry(vertArray, texCoordsArray))
+                console.log("Drum error. Error initializing Geometry!");
+            if (!drum.assignTextures(textureArray))
+                console.log("Drum error. Error assigning Textures!");
+            drum.assignShaderProgram(shaderProgram);
+        },
+
+    this.draw = function (movementMatrix) {
+        // Reset the center of drawing to be at the center of the object (so it would rotate around central axis)
+        drum.setPosition([0, 0, -drumRadius]);
+
+        if (!drum.draw(movementMatrix))
+            console.log("Drawing error!");
+    }
+}
+
+var drumCount = 3;
+
+
+
+
+    var objectVertexPositionBuffer;
     var objectVertexTextureCoordBuffer;
     var gl;
     var lastTime = 0;
@@ -8,20 +84,20 @@
 
     //var angleDelta = 22.5;
     //var drumRadius = 2 / Math.tan(degToRad(angleDelta));
-    var angleDelta = 45;
     var drumRadius = 2.41 / Math.tan(degToRad(angleDelta));
-    var drumTileCount = 360 / angleDelta;
+    var drumTileCount = 8;
+    var angleDelta = 360 / drumTileCount;
 
 
     var textureURLs = {
-        grapes: "../img/grapes_512.jpg",
-        bananas: "../img/banana_512.jpg",
-        oranges: "../img/orange_512.jpg",
-        cherries: "../img/cherry_512.jpg",
-        bars: "../img/bars_512.jpg",
-        bells: "../img/bells_512.jpg",
-        sevens: "../img/seven_512.jpg",
-        blanks: "../img/blank_512.jpg"
+        grapes: "img/grapes_512.jpg",
+        bananas: "img/banana_512.jpg",
+        oranges: "img/orange_512.jpg",
+        cherries: "img/cherry_512.jpg",
+        bars: "img/bars_512.jpg",
+        bells: "img/bells_512.jpg",
+        sevens: "img/seven_512.jpg",
+        blanks: "img/blank_512.jpg"
     };
 
     var textureNameList = ["grapes", "bananas", "oranges", "cherries", "bars", "bells", "sevens", "blanks"];
@@ -215,13 +291,45 @@
         var initXSpeed = 180;
 
         var time = new Date().getTime();
-        var animStopping = false;
-        var selectedItem;
+//        var animStopping = false;
+//        var selectedItem;
         var deceleration;
         var lastFrameTime;
 
         function drawObject() {
             if (textureArray.loaded) {
+                var drums = [];
+                for (var drum = 0; drum < drumCount; drum++) {
+                    drums.push(new DrumObject(gl));
+                    drums[drum].create(textureArray, shaderProgram);
+                }
+
+                gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+                mat4.perspective(pMatrix, 45.0, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0);
+
+                mat4.identity(mvMatrix);
+
+                vec3.set(translation, 0.0, 0.0, -8.0);
+                mat4.translate(mvMatrix, mvMatrix, translation);
+
+                vec3.set(rotation, 0, 1, 0);
+//                mat4.rotate(mvMatrix, mvMatrix, degToRad(90), rotation);
+
+                vec3.set(rotation, 1, 0, 0);
+//                mat4.rotate(mvMatrix, mvMatrix, degToRad(90), rotation);
+
+                drums[0].draw(mvMatrix);
+                vec3.set(translation, -2.1, 0.0, 0.0);
+                mat4.translate(mvMatrix, mvMatrix, translation);
+                drums[1].draw(mvMatrix);
+                vec3.set(translation, 4.2, 0.0, 0.0);
+                mat4.translate(mvMatrix, mvMatrix, translation);
+                drums[2].draw(mvMatrix);
+
+
+
                 //            if (!Obj3d.initGeometry([vertices], [textureCoords]))
                 //            if (!Obj3d.assignTextures([neheTexture]))
 /*
@@ -230,7 +338,10 @@
                 if (!Obj3d.assignTextures(textureArray))
                     alert("assignTextures() failed!")
                 Obj3d.assignShaderProgram(shaderProgram);
-*/                
+*/
+
+/*
+
                 for (var drum = 0; drum < drums.length; drum++) {
                     if (!drums[drum].initGeometry(vertArray, texCoordsArray))
                         console.log("Drum " + drum + " error initializing Geometry!");
@@ -269,7 +380,7 @@
                     drums[drum].setRotation([initAngle, 0, 0]);
                     drums[drum].setRotationSpeed([initXSpeed, 0, 0]);
                     drums[drum].startAnimation();
-
+*/
 /*
                     if (!Obj3d.draw())
                         console.log("Drum " + drum + " error attempting to draw()!");
@@ -278,8 +389,8 @@
                     Obj3d.setRotationSpeed([initXSpeed, 0, 0]);
                     Obj3d.startAnimation();
 */
-                    objTick();
-                }
+//                    objTick();
+//                }
             } else {
                 var loaded = true;
                 for (var i = 0; i < textureArray.length; i++) {
@@ -292,24 +403,23 @@
             }
         }
 
-        var selectedItem;
-
         function objTick() {
+/*
             requestAnimFrame(objTick);
 
             for (var drum = 0; drum < drums.length; drum++) {
                 drums[drum].draw();
 
-                if ((new Date().getTime() - time > 5000) && (!animStopping)) {
-                    animStopping = true;
-                    selectedItem = Math.round(drums[drum].getRotation()[0] / angleDelta);
+                if ((new Date().getTime() - time > Math.random()*8000+2000) && (!drums[drum].animStopping)) {
+                    drums[drum].animStopping = true;
+                    drums[drum].selectedItem = Math.round(drums[drum].getRotation()[0] / angleDelta);
                     lastFrameTime = new Date().getTime();
                     initXSpeed = initXSpeed / 2;
 
                     deceleration = 360 / 4;
-                    console.log("Selected: " + selectedItem);
+                    console.log("Selected for drum: "+drum + " - " + textureNameList[drums[drum].selectedItem]);
                 }
-                if (animStopping) {
+                if (drums[drum].animStopping) {
                     var currentFrameTime = new Date().getTime();
                     var elapsed = currentFrameTime - lastFrameTime;
 
@@ -321,17 +431,18 @@
                         } else {
                             if (initXSpeed <= 30) {
                                 var currentItem = drums[drum].getRotation()[0];
-                                if ((currentItem >= selectedItem * angleDelta) && (currentItem <= selectedItem * angleDelta + 10)) {
+                                if ((currentItem >= drums[drum].selectedItem * angleDelta) && (currentItem <= drums[drum].selectedItem * angleDelta + 10)) {
                                     initXSpeed = 0;
                                 }
                             }
                         }
                     } else {
                         drums[drum].stopAnimation();
-                        drums[drum].setRotation([selectedItem * angleDelta, 0, 0]);
+                        drums[drum].setRotation([drums[drum].selectedItem * angleDelta, 0, 0]);
                     }
                 }
             }
+
 /*
             Obj3d.draw();
             if ((new Date().getTime() - time > 3000) && (!animStopping)) {

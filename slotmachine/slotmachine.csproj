@@ -57,13 +57,31 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="img\banana_512.jpg" />
     <Content Include="img\banana_512.png" />
+    <Content Include="img\bars_512.jpg" />
     <Content Include="img\bars_512.png" />
+    <Content Include="img\bells_512.jpg" />
     <Content Include="img\bells_512.png" />
+    <Content Include="img\blank_512.jpg" />
     <Content Include="img\blank_512.png" />
+    <Content Include="img\cherry_512.jpg" />
     <Content Include="img\cherry_512.png" />
+    <Content Include="img\digits_0.jpg" />
+    <Content Include="img\digits_1.jpg" />
+    <Content Include="img\digits_2.jpg" />
+    <Content Include="img\digits_3.jpg" />
+    <Content Include="img\digits_4.jpg" />
+    <Content Include="img\digits_5.jpg" />
+    <Content Include="img\digits_6.jpg" />
+    <Content Include="img\digits_7.jpg" />
+    <Content Include="img\digits_8.jpg" />
+    <Content Include="img\digits_9.jpg" />
+    <Content Include="img\grapes_512.jpg" />
     <Content Include="img\grapes_512.png" />
+    <Content Include="img\orange_512.jpg" />
     <Content Include="img\orange_512.png" />
+    <Content Include="img\seven_512.jpg" />
     <Content Include="img\seven_512.png" />
     <Content Include="Scripts\gl-matrix-min.js" />
     <Content Include="Scripts\gl-matrix.js" />
