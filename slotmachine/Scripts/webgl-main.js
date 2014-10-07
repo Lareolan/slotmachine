@@ -14,6 +14,7 @@
 
     // These variables are used for smooth stopping animation
     var stopping = false;
+    var spinning = false;
     var result;
     var currentItem;
 
@@ -104,16 +105,20 @@
     this.spin = function () {
         drum.setRotationSpeed([720, 0, 0]);
         drum.startAnimation();
+        spinning = true;
     }
 
     this.stop = function () {
-        stopping = true;
-        result = Math.floor(Math.random() * 8);
-        console.log("Drum result: " + textureNameList[result]);
+        if (spinning) {
+            stopping = true;
+            spinning = false;
+            result = Math.floor(Math.random() * 8);
+            console.log("Drum result: " + textureNameList[result]);
 
-        currentItem = ((result - 3) < 0) ? (result - 3) + 8 : (result - 3);
-        drum.setRotation([currentItem * angleDelta, 0, 0]);
-        drum.setRotationSpeed([drum.getRotationSpeed()[0]/4, 0, 0]);
+            currentItem = ((result - 3) < 0) ? (result - 3) + 8 : (result - 3);
+            drum.setRotation([currentItem * angleDelta, 0, 0]);
+            drum.setRotationSpeed([drum.getRotationSpeed()[0] / 4, 0, 0]);
+        }
     }
 }
 
