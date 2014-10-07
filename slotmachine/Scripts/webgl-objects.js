@@ -195,22 +195,22 @@ window.webgl.object3d = function (gl) {
 
                 // Just a little house cleaning to keep all the values to manageable size.
                 if (animationRotate.x > 360) {
-                    animationRotate.x -= 360;
+                    animationRotate.x %= 360;
                 }
                 if (animationRotate.x < -360) {
-                    animationRotate.x += 360;
+                    animationRotate.x %= 360;
                 }
                 if (animationRotate.y > 360) {
-                    animationRotate.y -= 360;
+                    animationRotate.y %= 360;
                 }
                 if (animationRotate.y < -360) {
-                    animationRotate.y += 360;
+                    animationRotate.y %= 360;
                 }
                 if (animationRotate.z > 360) {
-                    animationRotate.z -= 360;
+                    animationRotate.z %= 360;
                 }
                 if (animationRotate.z < -360) {
-                    animationRotate.z += 360;
+                    animationRotate.z %= 360;
                 }
 
                 // Adjust the translation values
@@ -265,6 +265,14 @@ window.webgl.object3d = function (gl) {
         animationRotate.xSpeed = rotationSpeed[0];
         animationRotate.ySpeed = rotationSpeed[1];
         animationRotate.zSpeed = rotationSpeed[2];
+    }
+
+    /**
+     * Returns the rotation speed of the object
+     * @returns An array with 3 elements providing the x, y and z axis speeds of rotation
+     */
+    this.getRotationSpeed = function () {
+        return new Array(animationRotate.xSpeed, animationRotate.ySpeed, animationRotate.zSpeed);
     }
 
     /**
