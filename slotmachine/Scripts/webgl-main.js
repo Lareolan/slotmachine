@@ -1,5 +1,5 @@
 ﻿function DrumObject(glContext) {
-    // Local storage variables
+    // Local storage variables and "constants"
     var drum;
     var gl = glContext;
     var drumTileCount = 8;
@@ -116,7 +116,7 @@
             stopping = true;
             spinning = false;
             result = Math.floor(Math.random() * 8);
-            console.log("Drum result: " + textureNameList[result]);
+//            console.log("Drum result: " + textureNameList[result]);
 
             currentItem = ((result - 3) < 0) ? (result - 3) + 8 : (result - 3);
             drum.setRotation([currentItem * angleDelta, 0, 0]);
@@ -129,7 +129,32 @@
     }
 }
 
+function MachineObject(glContext) {
+    // Local storage variables and "constants"
+    var drum;
+    var gl = glContext;
+    var machineFaceCount = 4;
 
+    var vertArray = Array(machineFaceCount);
+    var texCoordsArray = [];
+    var textureArray = [];
+    
+    var textureCoords = [
+      1.0, 1.0,
+      0.0, 1.0,
+      1.0, 0.0,
+      0.0, 0.0
+    ];
+    var vertices = [
+        vec3.fromValues(1.0, 1.0, 0.0),
+        vec3.fromValues(-1.0, 1.0, 0.0),
+        vec3.fromValues(1.0, -1.0, 0.0),
+        vec3.fromValues(-1.0, -1.0, 0.0)
+    ];
+
+    this.create = function (textureArray, shaderProgram) {
+    }
+}
 
 
 
@@ -164,17 +189,28 @@ var translation = vec3.create();
 var rotation = vec3.create();
 var gl;
 var textureURLs = {
-    grapes: "img/grapes_512.jpg",
-    bananas: "img/banana_512.jpg",
-    oranges: "img/orange_512.jpg",
-    cherries: "img/cherry_512.jpg",
-    bars: "img/bars_512.jpg",
-    bells: "img/bells_512.jpg",
-    sevens: "img/seven_512.jpg",
-    blanks: "img/blank_512.jpg"
+    grapes:     "img/grapes_512.jpg",
+    bananas:    "img/banana_512.jpg",
+    oranges:    "img/orange_512.jpg",
+    cherries:   "img/cherry_512.jpg",
+    bars:       "img/bars_512.jpg",
+    bells:      "img/bells_512.jpg",
+    sevens:     "img/seven_512.jpg",
+    blanks:     "img/blank_512.jpg",
+    digitZero:  "img/digits_0.jpg",
+    digitOne:   "img/digits_1.jpg",
+    digitTwo:   "img/digits_2.jpg",
+    digitThree: "img/digits_3.jpg",
+    digitFour:  "img/digits_4.jpg",
+    digitFive:  "img/digits_5.jpg",
+    digitSix:   "img/digits_6.jpg",
+    digitSeven: "img/digits_7.jpg",
+    digitEight: "img/digits_8.jpg",
+    digitNine:  "img/digits_9.jpg"
 };
-var textureNameList = ["grapes", "bananas", "oranges", "cherries", "bars", "bells", "sevens", "blanks"];
-
+var drumTextureNameList = ["grapes", "bananas", "oranges", "cherries", "bars", "bells", "sevens", "blanks"];
+var digitsNameList = ["digitZero", "digitOne", "digitTwo", "digitThree", "digitFour", "digitFive", "digitSix", "digitSeven", "digitEight", "digitNine"];
+var allTexturesLoaded = false;
 
 
     function initGL(canvas) {
@@ -212,9 +248,6 @@ var textureNameList = ["grapes", "bananas", "oranges", "cherries", "bars", "bell
 
         shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
         gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
-
-        shaderProgram.vertexColorAttribute = gl.getAttribLocation(shaderProgram, "aVertexColor");
-        gl.enableVertexAttribArray(shaderProgram.vertexColorAttribute);
 
         shaderProgram.textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
         gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute);
@@ -275,42 +308,30 @@ var textureNameList = ["grapes", "bananas", "oranges", "cherries", "bars", "bell
         initGL(canvas);
         initShaders();
 
-        var textureArray = [];
-        initTextures(textureArray);
+        var loadedTextures = {};
+        initTextures(loadedTextures);
 
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
 
-        setTimeout(drawObject);
+        setTimeout(createObjects);
 
-        var initXSpeed = 180;
-
-        var time = new Date().getTime();
-        var deceleration;
-        var lastFrameTime;
-
-        function drawObject() {
-            if (textureArray.loaded) {
-                for (var drum = 0; drum < drumCount; drum++) {
-                    drums.push(new DrumObject(gl));
-                    drums[drum].create(textureArray, shaderProgram);
-                }
-//                drums[0].setPosition([-2.1, 0.0, 0.0]);
-//                drums[0].draw(mvMatrix);
-//                drums[1].setPosition([0.0, 0.0, 0.0]);
-//                drums[1].draw(mvMatrix);
-//                drums[2].setPosition([2.1, 0.0, 0.0]);
-//                drums[2].draw(mvMatrix);
-//                drums[4].setPosition([4.2, 0.0, 0.0]);
-//                drums[3].setPosition([-4.2, 0.0, 0.0]);
-
+        function createObjects() {
+            if (allTexturesLoaded) {
+                var drumTextures = [];
+                $.each(drumTextureNameList, function (index, textureName) {
+                    drumTextures.push(loadedTextures[textureName]);
+                });
 
                 var offset = -2.1 * parseInt(drumCount / 2);
                 if (drumCount % 2 == 0) {
                     offset += 2.1 / 2;
                 }
+
                 for (var drum = 0; drum < drumCount; drum++) {
+                    drums.push(new DrumObject(gl));
+                    drums[drum].create(drumTextures, shaderProgram);
                     drums[drum].setPosition([offset, 0.0, 0.0]);
                     offset += 2.1;
                 }
@@ -318,21 +339,22 @@ var textureNameList = ["grapes", "bananas", "oranges", "cherries", "bars", "bell
                 tick();
             } else {
                 var loaded = true;
-                for (var i = 0; i < textureArray.length; i++) {
-                    if (!textureArray[i].loaded) {
+                $.each(loadedTextures, function (textureName, props) {
+                    if (!props.loaded) {
                         loaded = false;
                     }
-                }
-                textureArray.loaded = loaded;
-                setTimeout(drawObject, 100);
+                });
+
+                allTexturesLoaded = loaded;
+                setTimeout(createObjects, 100);
             }
         }
     }
 
-    function initTextures(texArray) {
-        for (var i = 0; i < textureNameList.length; i++) {
-            texArray[i] = loadTextures(textureURLs[textureNameList[i]]);
-        }
+    function initTextures(loadedTextures) {
+        $.each(textureURLs, function (textureName, URL) {
+            loadedTextures[textureName] = loadTextures(URL);
+        });
     }
 
     function loadTextures(url) {
@@ -353,9 +375,11 @@ var textureNameList = ["grapes", "bananas", "oranges", "cherries", "bars", "bell
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-        gl.generateMipmap(gl.TEXTURE_2D);
+        if (texture.image.height === texture.image.width) {
+            gl.generateMipmap(gl.TEXTURE_2D);               // Generate mipmaps for scalable square textures, ignore non-square textures
+        }
         gl.bindTexture(gl.TEXTURE_2D, null);
     }
 
