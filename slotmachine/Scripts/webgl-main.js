@@ -103,9 +103,12 @@
     }
 
     this.spin = function () {
-        drum.setRotationSpeed([720, 0, 0]);
-        drum.startAnimation();
-        spinning = true;
+        if (!spinning) {
+            drum.setRotationSpeed([720, 0, 0]);
+            drum.startAnimation();
+            spinning = true;
+            result = undefined;
+        }
     }
 
     this.stop = function () {
@@ -120,43 +123,57 @@
             drum.setRotationSpeed([drum.getRotationSpeed()[0] / 4, 0, 0]);
         }
     }
+
+    this.getResult = function () {
+        return result;
+    }
 }
 
-var drumCount = 3;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+var drumCount = 5;
 var drums = [];
 var translation = vec3.create();
 var rotation = vec3.create();
-
-
-
-
-    var objectVertexPositionBuffer;
-    var objectVertexTextureCoordBuffer;
-    var gl;
-    var lastTime = 0;
-    var xRot = 0;
-    var yRot = 0;
-    var zRot = 0;
-
-    //var angleDelta = 22.5;
-    //var drumRadius = 2 / Math.tan(degToRad(angleDelta));
-    var drumRadius = 2.41 / Math.tan(degToRad(angleDelta));
-    var drumTileCount = 8;
-    var angleDelta = 360 / drumTileCount;
-
-
-    var textureURLs = {
-        grapes: "img/grapes_512.jpg",
-        bananas: "img/banana_512.jpg",
-        oranges: "img/orange_512.jpg",
-        cherries: "img/cherry_512.jpg",
-        bars: "img/bars_512.jpg",
-        bells: "img/bells_512.jpg",
-        sevens: "img/seven_512.jpg",
-        blanks: "img/blank_512.jpg"
-    };
-
-    var textureNameList = ["grapes", "bananas", "oranges", "cherries", "bars", "bells", "sevens", "blanks"];
+var gl;
+var textureURLs = {
+    grapes: "img/grapes_512.jpg",
+    bananas: "img/banana_512.jpg",
+    oranges: "img/orange_512.jpg",
+    cherries: "img/cherry_512.jpg",
+    bars: "img/bars_512.jpg",
+    bells: "img/bells_512.jpg",
+    sevens: "img/seven_512.jpg",
+    blanks: "img/blank_512.jpg"
+};
+var textureNameList = ["grapes", "bananas", "oranges", "cherries", "bars", "bells", "sevens", "blanks"];
 
 
 
@@ -236,15 +253,9 @@ var rotation = vec3.create();
 
         return shader;
     }
-/*
-    function setMatrixUniforms() {
-        gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
-        gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
-    }
-*/
+
     function mvPushMatrix() {
         var copy = mat4.clone(mvMatrix);
-        //    mat4.set(mvMatrix, copy);
         mvMatrixStack.push(copy);
     }
 
@@ -269,6 +280,7 @@ var rotation = vec3.create();
 
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.enable(gl.DEPTH_TEST);
+        gl.enable(gl.CULL_FACE);
 
         setTimeout(drawObject);
 
@@ -284,32 +296,23 @@ var rotation = vec3.create();
                     drums.push(new DrumObject(gl));
                     drums[drum].create(textureArray, shaderProgram);
                 }
+//                drums[0].setPosition([-2.1, 0.0, 0.0]);
+//                drums[0].draw(mvMatrix);
+//                drums[1].setPosition([0.0, 0.0, 0.0]);
+//                drums[1].draw(mvMatrix);
+//                drums[2].setPosition([2.1, 0.0, 0.0]);
+//                drums[2].draw(mvMatrix);
+//                drums[4].setPosition([4.2, 0.0, 0.0]);
+//                drums[3].setPosition([-4.2, 0.0, 0.0]);
 
-                gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
-                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-                mat4.perspective(pMatrix, 45.0, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0);
-
-                mat4.identity(mvMatrix);
-
-                vec3.set(translation, 0.0, 0.0, -8.0);
-                mat4.translate(mvMatrix, mvMatrix, translation);
-
-                vec3.set(rotation, 0, 1, 0);
-//                mat4.rotate(mvMatrix, mvMatrix, degToRad(90), rotation);
-
-                vec3.set(rotation, 1, 0, 0);
-//                mat4.rotate(mvMatrix, mvMatrix, degToRad(90), rotation);
-
-                drums[0].setPosition([-2.1, 0.0, 0.0]);
-                drums[0].draw(mvMatrix);
-                drums[1].setPosition([0.0, 0.0, 0.0]);
-                drums[1].draw(mvMatrix);
-                drums[2].setPosition([2.1, 0.0, 0.0]);
-                drums[2].draw(mvMatrix);
-
+                var offset = -2.1 * parseInt(drumCount / 2);
+                if (drumCount % 2 == 0) {
+                    offset += 2.1 / 2;
+                }
                 for (var drum = 0; drum < drumCount; drum++) {
-                    drums[drum].spin();
+                    drums[drum].setPosition([offset, 0.0, 0.0]);
+                    offset += 2.1;
                 }
 
                 tick();
@@ -339,7 +342,6 @@ var rotation = vec3.create();
         texture.image.onload = function () {
             handleLoadedTexture(texture)
             texture.loaded = true;
-            //        callback.call(this);
         }
 
         texture.image.src = url;
@@ -359,21 +361,22 @@ var rotation = vec3.create();
 
     function tick() {
         requestAnimFrame(tick);
+        drawScene();
+    }
 
-
+    function drawScene() {
         /* SET PERSPECTIVE AND TRANSLATION*/
-
         gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        mat4.perspective(pMatrix, 45.0, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0);
+        mat4.perspective(pMatrix, (60 * Math.PI) / 180, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0);
 
         mat4.identity(mvMatrix);
 
-        vec3.set(translation, 0.0, 0.0, -8.0);
+        vec3.set(translation, 0.0, 0.0, -10.0);
         mat4.translate(mvMatrix, mvMatrix, translation);
-        
-        /*        DRAW         */
+
+        /*        DRAW DRUMS         */
         for (var drum = 0; drum < drumCount; drum++) {
             drums[drum].draw(mvMatrix);
         }
@@ -381,10 +384,31 @@ var rotation = vec3.create();
 
 
 
+
 $(document).ready(function () {
     webGLStart();
 //    var wgl = new webgl.main();
 //    wgl.webGLStart();
+});
+
+$("#start1").click(function () {
+    drums[0].spin();
+});
+
+$("#start2").click(function () {
+    drums[1].spin();
+});
+
+$("#start3").click(function () {
+    drums[2].spin();
+});
+
+$("#start4").click(function () {
+    drums[3].spin();
+});
+
+$("#start5").click(function () {
+    drums[4].spin();
 });
 
 $("#stop1").click(function () {
@@ -397,6 +421,14 @@ $("#stop2").click(function () {
 
 $("#stop3").click(function () {
     drums[2].stop();
+});
+
+$("#stop4").click(function () {
+    drums[3].stop();
+});
+
+$("#stop5").click(function () {
+    drums[4].stop();
 });
 
 
