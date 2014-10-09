@@ -76,13 +76,14 @@
         mat4.translate(translationMatrix, movementMatrix, translation);
 
         if (!drum.draw(translationMatrix))
-            console.log("Drawing error!");
+            console.log("Drum Drawing error!");
 
         if (stopping) {
             var rotationSpeed = drum.getRotationSpeed()[0];
             if (rotationSpeed <= 0) {
                 drum.stopAnimation();
                 stopping = false;
+                spinning = false;
             } else {
                 var newCurrentItem = Math.round(drum.getRotation()[0] / angleDelta);
                 if (newCurrentItem === result) {
@@ -115,7 +116,6 @@
     this.stop = function () {
         if (spinning) {
             stopping = true;
-            spinning = false;
             result = Math.floor(Math.random() * 8);
 //            console.log("Drum result: " + textureNameList[result]);
 
@@ -126,7 +126,15 @@
     }
 
     this.getResult = function () {
-        return result;
+        if (!spinning) {
+            return result;
+        } else {
+            return null;
+        }
+    }
+
+    this.isSpinning = function () {
+        return spinning;
     }
 }
 
@@ -136,7 +144,7 @@ function MachineObject(glContext) {
     var machine;
     var machineFaceCount = 4;
 
-    var vertArray = []; // Array(machineFaceCount);
+    var vertArray = [];
     var texCoordsArray = [];
     var textureArray = [];
     
@@ -183,9 +191,9 @@ function MachineObject(glContext) {
         
         machine = new webgl.object3d(gl);
         if (!machine.initGeometry(vertArray, texCoordsArray))
-            console.log("Drum error. Error initializing Geometry!");
+            console.log("Machine error. Error initializing Geometry!");
         if (!machine.assignTextures(textureArray))
-            console.log("Drum error. Error assigning Textures!");
+            console.log("Machine error. Error assigning Textures!");
         machine.assignShaderProgram(shaderProgram);
     }
 
@@ -195,7 +203,7 @@ function MachineObject(glContext) {
         mat4.translate(translationMatrix, movementMatrix, translation);
 
         if (!machine.draw(translationMatrix))
-            console.log("Drawing error!");
+            console.log("Machine Drawing error!");
     }
 }
 
@@ -205,11 +213,14 @@ function ButtonObject(glContext) {
     var gl = glContext;
     var button;
     var buttonPosition = { x: 0, y: 0, z: 0 };
+    var active = true;          // Current state
     var clicked = false;        // Current state
+    var buttonValue = 0;
 
     var vertArray = [];
     var texCoordsArray = [];
     var textureArray = [];
+    var buttonTextures = [];
 
     var textureCoords = [
       1.0, 1.0,
@@ -226,14 +237,18 @@ function ButtonObject(glContext) {
     ];
 
     this.create = function (textureArray, shaderProgram) {
+        buttonTextures = textureArray.slice();
+        var currentTexturesArray = [];
+
         vertArray.push(buttonVertices);
         texCoordsArray.push(textureCoords);
+        currentTexturesArray.push(textureArray[0]);
 
         button = new webgl.object3d(gl);
         if (!button.initGeometry(vertArray, texCoordsArray))
-            console.log("Drum error. Error initializing Geometry!");
-        if (!button.assignTextures(textureArray))
-            console.log("Drum error. Error assigning Textures!");
+            console.log("Button error. Error initializing Geometry!");
+        if (!button.assignTextures(currentTexturesArray))
+            console.log("Button error. Error assigning Textures!");
         button.assignShaderProgram(shaderProgram);
     }
 
@@ -243,7 +258,7 @@ function ButtonObject(glContext) {
         mat4.translate(translationMatrix, movementMatrix, translation);
 
         if (!button.draw(translationMatrix))
-            console.log("Drawing error!");
+            console.log("Button Drawing error!");
     }
 
     this.setPosition = function (position) {
@@ -253,9 +268,13 @@ function ButtonObject(glContext) {
     }
 
     this.click = function () {
-        if (!clicked) {
+        if ((!clicked) && (active)) {
             buttonPosition.z -= 0.05;
             clicked = true;
+            if ((window.totalBet + buttonValue) >= 0) {
+                window.totalBet += buttonValue;
+            }
+
             setTimeout(depressButton, 200);
         }
     }
@@ -264,6 +283,30 @@ function ButtonObject(glContext) {
         buttonPosition.z += 0.05;
         clicked = false;
     }
+
+    this.setValue = function (value) {
+        buttonValue = value;
+    }
+
+    this.activate = function (state) {
+        if ((state === undefined) || (state)) {
+            if (!button.assignTextures([buttonTextures[0]])) {
+                console.log("Button error. Error re-assigning new Textures!");
+            } else {
+                active = true;
+            }
+        } else {
+            if (!button.assignTextures([buttonTextures[1]])) {
+                console.log("Button error. Error re-assigning new Textures!");
+            } else {
+                active = false;
+            }
+        }
+    }
+
+    this.isActive = function () {
+        return active;
+    }
 }
 
 function StartButtonObject(glContext) {
@@ -271,11 +314,12 @@ function StartButtonObject(glContext) {
     var gl = glContext;
     var button;
     var buttonPosition = { x: 0, y: 0, z: 0 };
-    var clicked = false;        // Current state
+    var active = true;        // Current state
 
-    var vertArray = []; // Array(machineFaceCount);
+    var vertArray = [];
     var texCoordsArray = [];
     var textureArray = [];
+    var buttonTextures = [];
 
     var textureCoords = [
       1.0, 1.0,
@@ -292,14 +336,18 @@ function StartButtonObject(glContext) {
     ];
 
     this.create = function (textureArray, shaderProgram) {
+        buttonTextures = textureArray.slice();
+        var currentTexturesArray = [];
+
         vertArray.push(buttonVertices);
         texCoordsArray.push(textureCoords);
+        currentTexturesArray.push(textureArray[0]);
 
         button = new webgl.object3d(gl);
         if (!button.initGeometry(vertArray, texCoordsArray))
-            console.log("Drum error. Error initializing Geometry!");
-        if (!button.assignTextures(textureArray))
-            console.log("Drum error. Error assigning Textures!");
+            console.log("Start Button error. Error initializing Geometry!");
+        if (!button.assignTextures(currentTexturesArray))
+            console.log("Start Button error. Error assigning Textures!");
         button.assignShaderProgram(shaderProgram);
     }
 
@@ -309,7 +357,7 @@ function StartButtonObject(glContext) {
         mat4.translate(translationMatrix, movementMatrix, translation);
 
         if (!button.draw(translationMatrix))
-            console.log("Drawing error!");
+            console.log("Start Button Drawing error!");
     }
 
     this.setPosition = function (position) {
@@ -319,13 +367,16 @@ function StartButtonObject(glContext) {
     }
 
     this.click = function (drums) {
-        if (!clicked) {
+        if (active) {
             buttonPosition.z -= 0.05;
-            clicked = true;
+            active = false;
 
             for (var drum = 0; drum < drums.length; drum++) {
                 drums[drum].spin();
             }
+
+            if (!button.assignTextures([buttonTextures[1]]))
+                console.log("Start Button error. Error re-assigning new Textures!");
 
             setTimeout(depressButton, 200);
         }
@@ -333,7 +384,19 @@ function StartButtonObject(glContext) {
 
     function depressButton() {
         buttonPosition.z += 0.05;
-        clicked = false;
+//        clicked = false;
+    }
+
+    this.activate = function () {
+        if (!button.assignTextures([buttonTextures[0]])) {
+            console.log("Start Button error. Error re-assigning new Textures!");
+        } else {
+            active = true;
+        }
+    }
+
+    this.isActive = function () {
+        return active;
     }
 }
 
@@ -342,7 +405,7 @@ function LabelObject(glContext) {
     var label;
     var labelPosition = { x: 0, y: 0, z: 0 };
 
-    var vertArray = []; // Array(machineFaceCount);
+    var vertArray = [];
     var texCoordsArray = [];
     var textureArray = [];
 
@@ -366,9 +429,9 @@ function LabelObject(glContext) {
 
         label = new webgl.object3d(gl);
         if (!label.initGeometry(vertArray, texCoordsArray))
-            console.log("Drum error. Error initializing Geometry!");
+            console.log("Label error. Error initializing Geometry!");
         if (!label.assignTextures(textureArray))
-            console.log("Drum error. Error assigning Textures!");
+            console.log("Label error. Error assigning Textures!");
         label.assignShaderProgram(shaderProgram);
     }
 
@@ -378,7 +441,7 @@ function LabelObject(glContext) {
         mat4.translate(translationMatrix, movementMatrix, translation);
 
         if (!label.draw(translationMatrix))
-            console.log("Drawing error!");
+            console.log("Label Drawing error!");
     }
 
     this.setDimensions = function (dimensions) {
@@ -397,6 +460,98 @@ function LabelObject(glContext) {
     }
 }
 
+function NumberObject(glContext, size) {
+    var gl = glContext;
+    var number;
+    var numberValue = 0;
+    var digitCount = size;
+    var numberPosition = { x: 0, y: 0, z: 0 };
+
+    var vertArray = [];
+    var texCoordsArray = [];
+    var textureArray = [];
+    var digitTextures = [];
+
+    var textureCoords = [
+      1.0, 1.0,
+      0.0, 1.0,
+      1.0, 0.0,
+      0.0, 0.0
+    ];
+
+    var digitVertices = [
+        vec3.fromValues(0.045, 0.075, 0.1),
+        vec3.fromValues(-0.045, 0.075, 0.1),
+        vec3.fromValues(0.045, -0.075, 0.1),
+        vec3.fromValues(-0.045, -0.075, 0.1)
+    ];
+
+    this.create = function (textureArray, shaderProgram) {
+        digitTextures = textureArray.slice();
+        var currentTexturesArray = [];
+        var transformationMatrix = mat4.create();
+        var translation = vec3.create();
+        var newXYZ = vec3.create();
+
+        for (var i = 0; i < digitCount; i++) {
+            vertArray[i] = [];
+
+            for (var j = 0; j < digitVertices.length; j++) {
+                mat4.identity(transformationMatrix);
+                vec3.set(translation, (0.09 * i), 0.0, 0.0);
+                mat4.translate(transformationMatrix, transformationMatrix, translation);
+
+                vec3.transformMat4(newXYZ, digitVertices[j], transformationMatrix);
+
+                vertArray[i].push(vec3.clone(newXYZ));
+            }
+            texCoordsArray.push(textureCoords);
+
+            currentTexturesArray.push(textureArray[0]);
+        }
+
+        number = new webgl.object3d(gl);
+        if (!number.initGeometry(vertArray, texCoordsArray))
+            console.log("Number error. Error initializing Geometry!");
+        if (!number.assignTextures(currentTexturesArray))
+            console.log("Number error. Error assigning Textures!");
+        number.assignShaderProgram(shaderProgram);
+    }
+
+    this.draw = function (movementMatrix) {
+        var translation = vec3.fromValues(numberPosition.x, numberPosition.y, numberPosition.z);
+        var translationMatrix = mat4.create();
+        mat4.translate(translationMatrix, movementMatrix, translation);
+
+        if (!number.draw(translationMatrix))
+            console.log("Number Drawing error!");
+    }
+
+    this.setPosition = function (position) {
+        numberPosition.x = position[0];
+        numberPosition.y = position[1];
+        numberPosition.z = position[2];
+    }
+
+    this.setValue = function (value) {
+        numberValue = value;
+
+        var stringValue = value.toString();
+        if (stringValue.length > digitCount) {
+            return false;
+        }
+        stringValue = Array(digitCount - stringValue.length + 1).join("0") + stringValue;
+
+        var textureArray = [];
+        for (var i = 0; i < stringValue.length; i++) {
+            textureArray.push(digitTextures[parseInt(stringValue[i])]);
+        }
+        if (!number.assignTextures(textureArray))
+            console.log("Number error. Error re-assigning new Textures!");
+
+        return true;
+    }
+}
 
 
 
@@ -427,6 +582,10 @@ var betButtons = [];
 var startButton;
 var stopButtons = [];
 var labels = {};
+var numbers = {};
+
+var totalBet = 0;
+
 
 var translation = vec3.create();
 var rotation = vec3.create();
@@ -440,7 +599,8 @@ var textureURLs = {
     bells:      "img/bells_512.jpg",
     sevens:     "img/seven_512.jpg",
     blanks:     "img/blank_512.jpg",
-    digitZero:  "img/digits_0.jpg",
+    digitZero: "img/alphabet_a_512.jpg",
+//    digitZero:  "img/digits_0.jpg",
     digitOne:   "img/digits_1.jpg",
     digitTwo:   "img/digits_2.jpg",
     digitThree: "img/digits_3.jpg",
@@ -451,11 +611,30 @@ var textureURLs = {
     digitEight: "img/digits_8.jpg",
     digitNine:  "img/digits_9.jpg",
     digitNine:  "img/digits_9.jpg",
-    test:       "img/test_button_512.jpg"
+    machine:    "img/machine_512.jpg",
+    startGreen: "img/start_button_green.png",
+    startRed:   "img/start_button_red.png",
+    buttonGreen1:   "img/button_plus_1_512.png",
+    buttonGreen5:   "img/button_plus_5_512.png",
+    buttonGreen10:  "img/button_plus_10_512.png",
+    buttonGreen50:  "img/button_plus_50_512.png",
+    buttonGreen100: "img/button_plus_100_512.png",
+    buttonRed1:     "img/button_minus_1_512.png",
+    buttonRed5:     "img/button_minus_5_512.png",
+    buttonRed10:    "img/button_minus_10_512.png",
+    buttonRed50:    "img/button_minus_50_512.png",
+    buttonRed100:   "img/button_minus_100_512.png",
+    stopButtonGreen: "img/stop_button_green_512.png",
+    stopButtonRed:  "img/stop_button_red_512.png",
+    labelJackpot:   "img/label_jackpot_512.png",
+    test: "img/test_button_512.jpg"
+//    test: "img/seven_512.png"
 };
 var drumTextureNameList = ["grapes", "bananas", "oranges", "cherries", "bars", "bells", "sevens", "blanks"];
 var digitsTextureNameList = ["digitZero", "digitOne", "digitTwo", "digitThree", "digitFour", "digitFive", "digitSix", "digitSeven", "digitEight", "digitNine"];
 var allTexturesLoaded = false;
+var betButtonValues = [1, -1, 5, -5, 10, -10, 50, -50, 100, -100];
+var betButtonTextureNameList = ["buttonGreen1", "buttonRed1", "buttonGreen5", "buttonRed5", "buttonGreen10", "buttonRed10", "buttonGreen50", "buttonRed50", "buttonGreen100", "buttonRed100"];
 
 
     function initGL(canvas) {
@@ -559,6 +738,9 @@ var allTexturesLoaded = false;
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.enable(gl.BLEND);
+
 
         setTimeout(createObjects);
 
@@ -583,10 +765,10 @@ var allTexturesLoaded = false;
 
                 machine = new MachineObject(gl);
                 machine.create([
-                    loadedTextures.sevens,
-                    loadedTextures.sevens,
-                    loadedTextures.sevens,
-                    loadedTextures.sevens
+                    loadedTextures.machine,
+                    loadedTextures.machine,
+                    loadedTextures.machine,
+                    loadedTextures.machine
 /*
                     loadedTextures.test,
                     loadedTextures.test,
@@ -600,36 +782,21 @@ var allTexturesLoaded = false;
                     loadedTextures.test
 */
                 ], shaderProgram);
-/*
-                var button1Vertices = [
-                    vec3.fromValues(-0.64, -0.4, 0.1),
-                    vec3.fromValues(-1.0, -0.4, 0.1),
-                    vec3.fromValues(-0.64, -0.66, 0.1),
-                    vec3.fromValues(-1.0, -0.66, 0.1)
-                ];
-    var buttonVertices = [
-        vec3.fromValues(0.18, 0.13, 0.1),
-        vec3.fromValues(-0.18, 0.13, 0.1),
-        vec3.fromValues(0.18, -0.13, 0.1),
-        vec3.fromValues(-0.18, -0.13, 0.1)
-    ];
 
-        x: -0.82, y: -0.53
-*/
                 var buttonXOffset = -0.82
                 var buttonYOffset = -0.69
-
                 for (var i = 0; i < betButtonCount; i++) {
                     betButtons[i] = new ButtonObject(gl);
-                    betButtons[i].create([loadedTextures.test], shaderProgram);
+                    betButtons[i].create([loadedTextures[betButtonTextureNameList[i]]], shaderProgram);
                     if ((i % 2) == 0) {
                         betButtons[i].setPosition([buttonXOffset + 0.27 * parseInt(i / 2), buttonYOffset, 0]);
                     } else {
                         betButtons[i].setPosition([buttonXOffset + 0.27 * parseInt(i / 2), buttonYOffset - 0.18, 0]);
                     }
+                    betButtons[i].setValue(betButtonValues[i]);
                 }
                 startButton = new StartButtonObject(gl);
-                startButton.create([loadedTextures.test], shaderProgram);
+                startButton.create([loadedTextures.startGreen, loadedTextures.startRed], shaderProgram);
                 startButton.setPosition([0.70, -0.78, 0]);
 
                 buttonXOffset = -0.56;
@@ -637,14 +804,31 @@ var allTexturesLoaded = false;
 
                 for (var i = 0; i < drumCount; i++) {
                     stopButtons[i] = new ButtonObject(gl);
-                    stopButtons[i].create([loadedTextures.test], shaderProgram);
+                    stopButtons[i].create([loadedTextures.stopButtonGreen, loadedTextures.stopButtonRed], shaderProgram);
                     stopButtons[i].setPosition([buttonXOffset + 0.28 * i, buttonYOffset, 0]);
+                    stopButtons[i].activate(false);
                 }
 
                 labels["jackpot"] = new LabelObject(gl);
                 labels["jackpot"].setDimensions([0.75, 0.15, 0]);
-                labels["jackpot"].create([loadedTextures.test], shaderProgram);
+                labels["jackpot"].create([loadedTextures.labelJackpot], shaderProgram);
                 labels["jackpot"].setPosition([-0.6, 0.9, 0]);
+
+                numbers["jackpot"] = new NumberObject(gl, 10);
+                numbers["jackpot"].create([
+                    loadedTextures.digitZero,
+                    loadedTextures.digitOne,
+                    loadedTextures.digitTwo,
+                    loadedTextures.digitThree,
+                    loadedTextures.digitFour,
+                    loadedTextures.digitFive,
+                    loadedTextures.digitSix,
+                    loadedTextures.digitSeven,
+                    loadedTextures.digitEight,
+                    loadedTextures.digitNine
+                ], shaderProgram);
+                numbers["jackpot"].setPosition([0.0, 0.9, 0]);
+                numbers["jackpot"].setValue(500);
 
 
                 tick();
@@ -697,6 +881,9 @@ var allTexturesLoaded = false;
     function tick() {
         requestAnimFrame(tick);
         drawScene();
+        if (!startButton.isActive()) {
+            testWin();
+        }
     }
 
     function drawScene() {
@@ -733,39 +920,39 @@ var allTexturesLoaded = false;
         }
 
         labels["jackpot"].draw(mvMatrix);
+
+        numbers["jackpot"].setValue(totalBet);
+        numbers["jackpot"].draw(mvMatrix);
     }
 
+    function testWin() {
+        var stopped = true;
+        var result = [];
 
-/*
-    function getMousePos(canvas, evt) {
-        var rect = canvas.getBoundingClientRect();
-        return {
-            x: (evt.clientX - rect.left) / (rect.right - rect.left) * canvas.width,
-            y: (evt.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height
-        };
+        for (var drum = 0; drum < drums.length; drum++) {
+            if (drums[drum].isSpinning()) {
+                stopped = false;
+            } else {
+                if (stopButtons[drum].isActive()) {
+                    stopButtons[drum].activate(false);
+                }
+            }
+            result.push(drumTextureNameList[drums[drum].getResult()]);
+        }
+        if (stopped) {
+            startButton.activate();
+            console.log(result.join(" - "));
+            //setTimeout(startButton.activate, 1500);
+        }
     }
-    var canvas = document.getElementById('myCanvas');
-    var context = canvas.getContext('2d');
 
-    canvas.addEventListener('mousemove', function (evt) {
-        var mousePos = getMousePos(canvas, evt);
-        var message = 'Mouse position: ' + mousePos.x + ',' + mousePos.y;
-        writeMessage(canvas, message);
-    }, false);
-*/
-
-/*
-    btn1: 409x699, 515x765
-    btn2: 409x773, 515x839
-    btn3: 521x699, 627x765
-    btn4: 521x773, 627x839
-*/
 
 
 $(document).ready(function () {
     webGLStart();
     //    var wgl = new webgl.main();
     //    wgl.webGLStart();
+
     $("#webgl-canvas").click(function (e) {
         var rect = this.getBoundingClientRect();
         var mouse = {
@@ -773,11 +960,9 @@ $(document).ready(function () {
             y: (e.clientY - rect.top) / (rect.bottom - rect.top) * this.height
         };
 
-        // startX = 409 + 106, + 112
-        // startY = 699 + 66, + 74
+        // Betting Button rectangles
         var startXOffset = 409;
         var startYOffset = 699;
-
         for (var i = 0; i < betButtons.length; i++) {
             if ((i % 2) === 0) {
                 if (((mouse.x > startXOffset + 112 * parseInt(i / 2)) && (mouse.x < (startXOffset + 106) + 112 * parseInt(i / 2)))
@@ -793,44 +978,40 @@ $(document).ready(function () {
         }
 
 
+        // Stop Button rectangles
         var startXOffset = 516;
         var startYOffset = 600;
-
         for (var i = 0; i < stopButtons.length; i++) {
             if (((mouse.x > startXOffset + 116 * i) && (mouse.x < (startXOffset + 106) + 116 * i))
                                 && ((mouse.y > startYOffset) && (mouse.y < startYOffset + 66))) {
-                stopButtons[i].click();
-                drums[i].stop();
+                if (stopButtons[i].isActive()) {
+                    stopButtons[i].click();
+                    drums[i].stop();
+                }
             }
         }
 
+        // Start Button rectangle
         if (((mouse.x > 976) && (mouse.x < 1197)) && ((mouse.y > 699) && (mouse.y < 839))) {
             startButton.click(drums);
+            for (var i = 0; i < stopButtons.length; i++) {
+                stopButtons[i].activate();
+            }
         }
-
-        // Stop1: 516x600, 622x666
-        // Stop2: 632x600, 738x666
-
-        // Start: 976x699, 1197x839
-/*
-        if (((mouse.x > 409) && (mouse.x < 515)) && ((mouse.y > 699) && (mouse.y < 765))) {
-            betButtons[0].click();
-        }
-        if (((mouse.x > 409) && (mouse.x < 515)) && ((mouse.y > 773) && (mouse.y < 839))) {
-            betButtons[1].click();
-        }
-        if (((mouse.x > 521) && (mouse.x < 627)) && ((mouse.y > 699) && (mouse.y < 765))) {
-            betButtons[2].click();
-        }
-        if (((mouse.x > 521) && (mouse.x < 627)) && ((mouse.y > 773) && (mouse.y < 839))) {
-            betButtons[3].click();
-        }
-*/
 
 //        alert("X: " + mouse.x + "\nY: " + mouse.y);
     });
 });
 
+$("canvas").click(function () {
+    var $this = $(this);
+    $this.css("cursor", "url('../img/pointerDown.cur'), auto");
+    setTimeout(function () {
+        $this.css("cursor", "");
+    }, 200);
+});
+
+/*
 $("#start1").click(function () {
     drums[0].spin();
 });
@@ -870,7 +1051,7 @@ $("#stop4").click(function () {
 $("#stop5").click(function () {
     drums[4].stop();
 });
-
+*/
 
 
 

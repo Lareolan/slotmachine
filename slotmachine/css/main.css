@@ -7,7 +7,8 @@
 
 canvas {
     width: 100%;
-    height: 95%;
+    height: 100%;
+    cursor: url("../img/pointer.cur"), auto;
 }
 
 ul#playerStats {

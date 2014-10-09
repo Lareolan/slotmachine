@@ -79,10 +79,15 @@
     <Content Include="img\digits_9.jpg" />
     <Content Include="img\grapes_512.jpg" />
     <Content Include="img\grapes_512.png" />
+    <Content Include="img\machine_512.jpg" />
     <Content Include="img\orange_512.jpg" />
     <Content Include="img\orange_512.png" />
+    <Content Include="img\pointer.cur" />
+    <Content Include="img\pointerDown.cur" />
     <Content Include="img\seven_512.jpg" />
     <Content Include="img\seven_512.png" />
+    <Content Include="img\start_button_green.png" />
+    <Content Include="img\start_button_red.png" />
     <Content Include="img\test_button_512.jpg" />
     <Content Include="Scripts\gl-matrix-min.js" />
     <Content Include="Scripts\gl-matrix.js" />
