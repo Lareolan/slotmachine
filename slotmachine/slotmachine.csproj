@@ -83,6 +83,7 @@
     <Content Include="img\orange_512.png" />
     <Content Include="img\seven_512.jpg" />
     <Content Include="img\seven_512.png" />
+    <Content Include="img\test_button_512.jpg" />
     <Content Include="Scripts\gl-matrix-min.js" />
     <Content Include="Scripts\gl-matrix.js" />
     <Content Include="JavaScript\glMatrix-0.9.5.min.js" />

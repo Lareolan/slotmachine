@@ -1,7 +1,7 @@
 ﻿function DrumObject(glContext) {
     // Local storage variables and "constants"
-    var drum;
     var gl = glContext;
+    var drum;
     var drumTileCount = 8;
     var angleDelta = 360 / drumTileCount;
     var drumRadius = 2.41 / Math.tan(degToRad(angleDelta));
@@ -105,6 +105,7 @@
     this.spin = function () {
         if (!spinning) {
             drum.setRotationSpeed([720, 0, 0]);
+            drum.setRotation([Math.random()* 8 * angleDelta, 0, 0]);
             drum.startAnimation();
             spinning = true;
             result = undefined;
@@ -131,11 +132,11 @@
 
 function MachineObject(glContext) {
     // Local storage variables and "constants"
-    var drum;
     var gl = glContext;
+    var machine;
     var machineFaceCount = 4;
 
-    var vertArray = Array(machineFaceCount);
+    var vertArray = []; // Array(machineFaceCount);
     var texCoordsArray = [];
     var textureArray = [];
     
@@ -145,14 +146,254 @@ function MachineObject(glContext) {
       1.0, 0.0,
       0.0, 0.0
     ];
-    var vertices = [
-        vec3.fromValues(1.0, 1.0, 0.0),
-        vec3.fromValues(-1.0, 1.0, 0.0),
-        vec3.fromValues(1.0, -1.0, 0.0),
-        vec3.fromValues(-1.0, -1.0, 0.0)
+    var topVertices = [
+        vec3.fromValues(1.1, 1.1, 0.0),
+        vec3.fromValues(-1.1, 1.1, 0.0),
+        vec3.fromValues(1.1, 0.35, 0.0),
+        vec3.fromValues(-1.1, 0.35, 0.0)
+    ];
+    var leftVertices = [
+        vec3.fromValues(-0.75, 0.35, 0.0),
+        vec3.fromValues(-1.1, 0.35, 0.0),
+        vec3.fromValues(-0.75, -0.35, 0.0),
+        vec3.fromValues(-1.1, -0.35, 0.0)
+    ];
+    var rightVertices = [
+        vec3.fromValues(1.1, 0.35, 0.0),
+        vec3.fromValues(0.75, 0.35, 0.0),
+        vec3.fromValues(1.1, -0.35, 0.0),
+        vec3.fromValues(0.75, -0.35, 0.0)
+    ];
+    var bottomVertices = [
+        vec3.fromValues(1.1, -0.35, 0.0),
+        vec3.fromValues(-1.1, -0.35, 0.0),
+        vec3.fromValues(1.1, -1.1, 0.0),
+        vec3.fromValues(-1.1, -1.1, 0.0)
     ];
 
     this.create = function (textureArray, shaderProgram) {
+        vertArray.push(topVertices);
+        vertArray.push(bottomVertices);
+        vertArray.push(leftVertices);
+        vertArray.push(rightVertices);
+
+        for (var i = 0; i < machineFaceCount; i++) {
+            texCoordsArray.push(textureCoords);
+        }
+        
+        machine = new webgl.object3d(gl);
+        if (!machine.initGeometry(vertArray, texCoordsArray))
+            console.log("Drum error. Error initializing Geometry!");
+        if (!machine.assignTextures(textureArray))
+            console.log("Drum error. Error assigning Textures!");
+        machine.assignShaderProgram(shaderProgram);
+    }
+
+    this.draw = function (movementMatrix) {
+        var translation = vec3.fromValues(0, 0, -2);
+        var translationMatrix = mat4.create();
+        mat4.translate(translationMatrix, movementMatrix, translation);
+
+        if (!machine.draw(translationMatrix))
+            console.log("Drawing error!");
+    }
+}
+
+
+function ButtonObject(glContext) {
+    // Local storage variables and "constants"
+    var gl = glContext;
+    var button;
+    var buttonPosition = { x: 0, y: 0, z: 0 };
+    var clicked = false;        // Current state
+
+    var vertArray = [];
+    var texCoordsArray = [];
+    var textureArray = [];
+
+    var textureCoords = [
+      1.0, 1.0,
+      0.0, 1.0,
+      1.0, 0.0,
+      0.0, 0.0
+    ];
+
+    var buttonVertices = [
+        vec3.fromValues(0.13, 0.08, 0.1),
+        vec3.fromValues(-0.13, 0.08, 0.1),
+        vec3.fromValues(0.13, -0.08, 0.1),
+        vec3.fromValues(-0.13, -0.08, 0.1)
+    ];
+
+    this.create = function (textureArray, shaderProgram) {
+        vertArray.push(buttonVertices);
+        texCoordsArray.push(textureCoords);
+
+        button = new webgl.object3d(gl);
+        if (!button.initGeometry(vertArray, texCoordsArray))
+            console.log("Drum error. Error initializing Geometry!");
+        if (!button.assignTextures(textureArray))
+            console.log("Drum error. Error assigning Textures!");
+        button.assignShaderProgram(shaderProgram);
+    }
+
+    this.draw = function (movementMatrix) {
+        var translation = vec3.fromValues(buttonPosition.x, buttonPosition.y, buttonPosition.z);
+        var translationMatrix = mat4.create();
+        mat4.translate(translationMatrix, movementMatrix, translation);
+
+        if (!button.draw(translationMatrix))
+            console.log("Drawing error!");
+    }
+
+    this.setPosition = function (position) {
+        buttonPosition.x = position[0];
+        buttonPosition.y = position[1];
+        buttonPosition.z = position[2];
+    }
+
+    this.click = function () {
+        if (!clicked) {
+            buttonPosition.z -= 0.05;
+            clicked = true;
+            setTimeout(depressButton, 200);
+        }
+    }
+
+    function depressButton() {
+        buttonPosition.z += 0.05;
+        clicked = false;
+    }
+}
+
+function StartButtonObject(glContext) {
+    // Local storage variables and "constants"
+    var gl = glContext;
+    var button;
+    var buttonPosition = { x: 0, y: 0, z: 0 };
+    var clicked = false;        // Current state
+
+    var vertArray = []; // Array(machineFaceCount);
+    var texCoordsArray = [];
+    var textureArray = [];
+
+    var textureCoords = [
+      1.0, 1.0,
+      0.0, 1.0,
+      1.0, 0.0,
+      0.0, 0.0
+    ];
+
+    var buttonVertices = [
+        vec3.fromValues(0.27, 0.17, 0.1),
+        vec3.fromValues(-0.27, 0.17, 0.1),
+        vec3.fromValues(0.27, -0.17, 0.1),
+        vec3.fromValues(-0.27, -0.17, 0.1)
+    ];
+
+    this.create = function (textureArray, shaderProgram) {
+        vertArray.push(buttonVertices);
+        texCoordsArray.push(textureCoords);
+
+        button = new webgl.object3d(gl);
+        if (!button.initGeometry(vertArray, texCoordsArray))
+            console.log("Drum error. Error initializing Geometry!");
+        if (!button.assignTextures(textureArray))
+            console.log("Drum error. Error assigning Textures!");
+        button.assignShaderProgram(shaderProgram);
+    }
+
+    this.draw = function (movementMatrix) {
+        var translation = vec3.fromValues(buttonPosition.x, buttonPosition.y, buttonPosition.z);
+        var translationMatrix = mat4.create();
+        mat4.translate(translationMatrix, movementMatrix, translation);
+
+        if (!button.draw(translationMatrix))
+            console.log("Drawing error!");
+    }
+
+    this.setPosition = function (position) {
+        buttonPosition.x = position[0];
+        buttonPosition.y = position[1];
+        buttonPosition.z = position[2];
+    }
+
+    this.click = function (drums) {
+        if (!clicked) {
+            buttonPosition.z -= 0.05;
+            clicked = true;
+
+            for (var drum = 0; drum < drums.length; drum++) {
+                drums[drum].spin();
+            }
+
+            setTimeout(depressButton, 200);
+        }
+    }
+
+    function depressButton() {
+        buttonPosition.z += 0.05;
+        clicked = false;
+    }
+}
+
+function LabelObject(glContext) {
+    var gl = glContext;
+    var label;
+    var labelPosition = { x: 0, y: 0, z: 0 };
+
+    var vertArray = []; // Array(machineFaceCount);
+    var texCoordsArray = [];
+    var textureArray = [];
+
+    var textureCoords = [
+      1.0, 1.0,
+      0.0, 1.0,
+      1.0, 0.0,
+      0.0, 0.0
+    ];
+
+    var labelVertices = [
+        vec3.fromValues(0.27, 0.17, 0.1),
+        vec3.fromValues(-0.27, 0.17, 0.1),
+        vec3.fromValues(0.27, -0.17, 0.1),
+        vec3.fromValues(-0.27, -0.17, 0.1)
+    ];
+
+    this.create = function (textureArray, shaderProgram) {
+        vertArray.push(labelVertices);
+        texCoordsArray.push(textureCoords);
+
+        label = new webgl.object3d(gl);
+        if (!label.initGeometry(vertArray, texCoordsArray))
+            console.log("Drum error. Error initializing Geometry!");
+        if (!label.assignTextures(textureArray))
+            console.log("Drum error. Error assigning Textures!");
+        label.assignShaderProgram(shaderProgram);
+    }
+
+    this.draw = function (movementMatrix) {
+        var translation = vec3.fromValues(labelPosition.x, labelPosition.y, labelPosition.z);
+        var translationMatrix = mat4.create();
+        mat4.translate(translationMatrix, movementMatrix, translation);
+
+        if (!label.draw(translationMatrix))
+            console.log("Drawing error!");
+    }
+
+    this.setDimensions = function (dimensions) {
+        var vertices = [];
+        vertices.push(vec3.fromValues(dimensions[0] / 2, dimensions[1] / 2, 0.1));
+        vertices.push(vec3.fromValues(-(dimensions[0] / 2), dimensions[1] / 2, 0.1));
+        vertices.push(vec3.fromValues(dimensions[0] / 2, -(dimensions[1] / 2), 0.1));
+        vertices.push(vec3.fromValues(-(dimensions[0] / 2), -(dimensions[1] / 2), 0.1));
+        labelVertices = vertices;
+    }
+
+    this.setPosition = function (position) {
+        labelPosition.x = position[0];
+        labelPosition.y = position[1];
+        labelPosition.z = position[2];
     }
 }
 
@@ -178,13 +419,15 @@ function MachineObject(glContext) {
 
 
 
-
-
-
-
-
 var drumCount = 5;
 var drums = [];
+var machine;
+var betButtonCount = 10;
+var betButtons = [];
+var startButton;
+var stopButtons = [];
+var labels = {};
+
 var translation = vec3.create();
 var rotation = vec3.create();
 var gl;
@@ -206,10 +449,12 @@ var textureURLs = {
     digitSix:   "img/digits_6.jpg",
     digitSeven: "img/digits_7.jpg",
     digitEight: "img/digits_8.jpg",
-    digitNine:  "img/digits_9.jpg"
+    digitNine:  "img/digits_9.jpg",
+    digitNine:  "img/digits_9.jpg",
+    test:       "img/test_button_512.jpg"
 };
 var drumTextureNameList = ["grapes", "bananas", "oranges", "cherries", "bars", "bells", "sevens", "blanks"];
-var digitsNameList = ["digitZero", "digitOne", "digitTwo", "digitThree", "digitFour", "digitFive", "digitSix", "digitSeven", "digitEight", "digitNine"];
+var digitsTextureNameList = ["digitZero", "digitOne", "digitTwo", "digitThree", "digitFour", "digitFive", "digitSix", "digitSeven", "digitEight", "digitNine"];
 var allTexturesLoaded = false;
 
 
@@ -336,6 +581,72 @@ var allTexturesLoaded = false;
                     offset += 2.1;
                 }
 
+                machine = new MachineObject(gl);
+                machine.create([
+                    loadedTextures.sevens,
+                    loadedTextures.sevens,
+                    loadedTextures.sevens,
+                    loadedTextures.sevens
+/*
+                    loadedTextures.test,
+                    loadedTextures.test,
+                    loadedTextures.test,
+                    loadedTextures.test,
+                    loadedTextures.test,
+                    loadedTextures.test,
+                    loadedTextures.test,
+                    loadedTextures.test,
+                    loadedTextures.test,
+                    loadedTextures.test
+*/
+                ], shaderProgram);
+/*
+                var button1Vertices = [
+                    vec3.fromValues(-0.64, -0.4, 0.1),
+                    vec3.fromValues(-1.0, -0.4, 0.1),
+                    vec3.fromValues(-0.64, -0.66, 0.1),
+                    vec3.fromValues(-1.0, -0.66, 0.1)
+                ];
+    var buttonVertices = [
+        vec3.fromValues(0.18, 0.13, 0.1),
+        vec3.fromValues(-0.18, 0.13, 0.1),
+        vec3.fromValues(0.18, -0.13, 0.1),
+        vec3.fromValues(-0.18, -0.13, 0.1)
+    ];
+
+        x: -0.82, y: -0.53
+*/
+                var buttonXOffset = -0.82
+                var buttonYOffset = -0.69
+
+                for (var i = 0; i < betButtonCount; i++) {
+                    betButtons[i] = new ButtonObject(gl);
+                    betButtons[i].create([loadedTextures.test], shaderProgram);
+                    if ((i % 2) == 0) {
+                        betButtons[i].setPosition([buttonXOffset + 0.27 * parseInt(i / 2), buttonYOffset, 0]);
+                    } else {
+                        betButtons[i].setPosition([buttonXOffset + 0.27 * parseInt(i / 2), buttonYOffset - 0.18, 0]);
+                    }
+                }
+                startButton = new StartButtonObject(gl);
+                startButton.create([loadedTextures.test], shaderProgram);
+                startButton.setPosition([0.70, -0.78, 0]);
+
+                buttonXOffset = -0.56;
+                buttonYOffset = -0.45;
+
+                for (var i = 0; i < drumCount; i++) {
+                    stopButtons[i] = new ButtonObject(gl);
+                    stopButtons[i].create([loadedTextures.test], shaderProgram);
+                    stopButtons[i].setPosition([buttonXOffset + 0.28 * i, buttonYOffset, 0]);
+                }
+
+                labels["jackpot"] = new LabelObject(gl);
+                labels["jackpot"].setDimensions([0.75, 0.15, 0]);
+                labels["jackpot"].create([loadedTextures.test], shaderProgram);
+                labels["jackpot"].setPosition([-0.6, 0.9, 0]);
+
+
                 tick();
             } else {
                 var loaded = true;
@@ -397,22 +708,127 @@ var allTexturesLoaded = false;
 
         mat4.identity(mvMatrix);
 
-        vec3.set(translation, 0.0, 0.0, -10.0);
+        vec3.set(translation, 0.0, 0.0, -14.0);
         mat4.translate(mvMatrix, mvMatrix, translation);
 
         /*        DRAW DRUMS         */
         for (var drum = 0; drum < drumCount; drum++) {
             drums[drum].draw(mvMatrix);
         }
+
+//        vec3.set(translation, 0.0, 0.0, 14.0);
+//        mat4.translate(mvMatrix, mvMatrix, translation);
+        mat4.identity(mvMatrix);
+        machine.draw(mvMatrix);
+
+        vec3.set(translation, 0.0, 0.0, -2.0);
+        mat4.translate(mvMatrix, mvMatrix, translation);
+        for (var i = 0; i < betButtons.length; i++) {
+            betButtons[i].draw(mvMatrix);
+        }
+        startButton.draw(mvMatrix);
+
+        for (var i = 0; i < stopButtons.length; i++) {
+            stopButtons[i].draw(mvMatrix);
+        }
+
+        labels["jackpot"].draw(mvMatrix);
     }
 
 
+/*
+    function getMousePos(canvas, evt) {
+        var rect = canvas.getBoundingClientRect();
+        return {
+            x: (evt.clientX - rect.left) / (rect.right - rect.left) * canvas.width,
+            y: (evt.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height
+        };
+    }
+    var canvas = document.getElementById('myCanvas');
+    var context = canvas.getContext('2d');
+
+    canvas.addEventListener('mousemove', function (evt) {
+        var mousePos = getMousePos(canvas, evt);
+        var message = 'Mouse position: ' + mousePos.x + ',' + mousePos.y;
+        writeMessage(canvas, message);
+    }, false);
+*/
+
+/*
+    btn1: 409x699, 515x765
+    btn2: 409x773, 515x839
+    btn3: 521x699, 627x765
+    btn4: 521x773, 627x839
+*/
 
 
 $(document).ready(function () {
     webGLStart();
-//    var wgl = new webgl.main();
-//    wgl.webGLStart();
+    //    var wgl = new webgl.main();
+    //    wgl.webGLStart();
+    $("#webgl-canvas").click(function (e) {
+        var rect = this.getBoundingClientRect();
+        var mouse = {
+            x: (e.clientX - rect.left) / (rect.right - rect.left) * this.width,
+            y: (e.clientY - rect.top) / (rect.bottom - rect.top) * this.height
+        };
+
+        // startX = 409 + 106, + 112
+        // startY = 699 + 66, + 74
+        var startXOffset = 409;
+        var startYOffset = 699;
+
+        for (var i = 0; i < betButtons.length; i++) {
+            if ((i % 2) === 0) {
+                if (((mouse.x > startXOffset + 112 * parseInt(i / 2)) && (mouse.x < (startXOffset + 106) + 112 * parseInt(i / 2)))
+                    && ((mouse.y > startYOffset) && (mouse.y < startYOffset + 66))) {
+                    betButtons[i].click();
+                }
+            } else {
+                if (((mouse.x > startXOffset + 112 * parseInt(i / 2)) && (mouse.x < (startXOffset + 106) + 112 * parseInt(i / 2)))
+                    && ((mouse.y > startYOffset + 74) && (mouse.y < startYOffset + 140))) {
+                    betButtons[i].click();
+                }
+            }
+        }
+
+
+        var startXOffset = 516;
+        var startYOffset = 600;
+
+        for (var i = 0; i < stopButtons.length; i++) {
+            if (((mouse.x > startXOffset + 116 * i) && (mouse.x < (startXOffset + 106) + 116 * i))
+                                && ((mouse.y > startYOffset) && (mouse.y < startYOffset + 66))) {
+                stopButtons[i].click();
+                drums[i].stop();
+            }
+        }
+
+        if (((mouse.x > 976) && (mouse.x < 1197)) && ((mouse.y > 699) && (mouse.y < 839))) {
+            startButton.click(drums);
+        }
+
+        // Stop1: 516x600, 622x666
+        // Stop2: 632x600, 738x666
+
+        // Start: 976x699, 1197x839
+/*
+        if (((mouse.x > 409) && (mouse.x < 515)) && ((mouse.y > 699) && (mouse.y < 765))) {
+            betButtons[0].click();
+        }
+        if (((mouse.x > 409) && (mouse.x < 515)) && ((mouse.y > 773) && (mouse.y < 839))) {
+            betButtons[1].click();
+        }
+        if (((mouse.x > 521) && (mouse.x < 627)) && ((mouse.y > 699) && (mouse.y < 765))) {
+            betButtons[2].click();
+        }
+        if (((mouse.x > 521) && (mouse.x < 627)) && ((mouse.y > 773) && (mouse.y < 839))) {
+            betButtons[3].click();
+        }
+*/
+
+//        alert("X: " + mouse.x + "\nY: " + mouse.y);
+    });
 });
 
 $("#start1").click(function () {
