@@ -403,11 +403,13 @@ function StartButtonObject(glContext) {
 function LabelObject(glContext) {
     var gl = glContext;
     var label;
+    var labelValue = "";
     var labelPosition = { x: 0, y: 0, z: 0 };
 
     var vertArray = [];
     var texCoordsArray = [];
     var textureArray = [];
+    var letterTextures = {};
 
     var textureCoords = [
       1.0, 1.0,
@@ -416,22 +418,44 @@ function LabelObject(glContext) {
       0.0, 0.0
     ];
 
-    var labelVertices = [
-        vec3.fromValues(0.27, 0.17, 0.1),
-        vec3.fromValues(-0.27, 0.17, 0.1),
-        vec3.fromValues(0.27, -0.17, 0.1),
-        vec3.fromValues(-0.27, -0.17, 0.1)
+    var letterVertices = [
+        vec3.fromValues(0.045, 0.075, 0.1),
+        vec3.fromValues(-0.045, 0.075, 0.1),
+        vec3.fromValues(0.045, -0.075, 0.1),
+        vec3.fromValues(-0.045, -0.075, 0.1)
     ];
 
-    this.create = function (textureArray, shaderProgram) {
-        vertArray.push(labelVertices);
-        texCoordsArray.push(textureCoords);
+    this.create = function (textureArray, shaderProgram, labelText) {
+        labelValue = labelText;
+        letterTextures = textureArray.slice();
+        var currentTexturesArray = [];
+        var transformationMatrix = mat4.create();
+        var translation = vec3.create();
+        var newXYZ = vec3.create();
+
+        for (var i = 0; i < labelText.length; i++) {
+            vertArray[i] = [];
+
+            for (var j = 0; j < letterVertices.length; j++) {
+                mat4.identity(transformationMatrix);
+                vec3.set(translation, (0.09 * i), 0.0, 0.0);
+                mat4.translate(transformationMatrix, transformationMatrix, translation);
+
+                vec3.transformMat4(newXYZ, letterVertices[j], transformationMatrix);
+
+                vertArray[i].push(vec3.clone(newXYZ));
+            }
+            texCoordsArray.push(textureCoords);
+
+            var textureID = labelText.charCodeAt(i) - 'a'.charCodeAt(0);
+            currentTexturesArray.push(textureArray[textureID]);
+        }
 
         label = new webgl.object3d(gl);
         if (!label.initGeometry(vertArray, texCoordsArray))
-            console.log("Label error. Error initializing Geometry!");
-        if (!label.assignTextures(textureArray))
-            console.log("Label error. Error assigning Textures!");
+            console.log("Number error. Error initializing Geometry!");
+        if (!label.assignTextures(currentTexturesArray))
+            console.log("Number error. Error assigning Textures!");
         label.assignShaderProgram(shaderProgram);
     }
 
@@ -441,22 +465,26 @@ function LabelObject(glContext) {
         mat4.translate(translationMatrix, movementMatrix, translation);
 
         if (!label.draw(translationMatrix))
-            console.log("Label Drawing error!");
-    }
-
-    this.setDimensions = function (dimensions) {
-        var vertices = [];
-        vertices.push(vec3.fromValues(dimensions[0] / 2, dimensions[1] / 2, 0.1));
-        vertices.push(vec3.fromValues(-(dimensions[0] / 2), dimensions[1] / 2, 0.1));
-        vertices.push(vec3.fromValues(dimensions[0] / 2, -(dimensions[1] / 2), 0.1));
-        vertices.push(vec3.fromValues(-(dimensions[0] / 2), -(dimensions[1] / 2), 0.1));
-        labelVertices = vertices;
+            console.log("Number Drawing error!");
     }
 
     this.setPosition = function (position) {
         labelPosition.x = position[0];
         labelPosition.y = position[1];
         labelPosition.z = position[2];
+    }
+
+    this.setValue = function (value) {
+        labelValue = value;
+
+        var textureArray = [];
+        for (var i = 0; i < labelValue.length; i++) {
+            textureArray.push(digitTextures[parseInt(labelValue.charAt(i))]);
+        }
+        if (!label.assignTextures(textureArray))
+            console.log("Label error. Error re-assigning new Textures!");
+
+        return true;
     }
 }
 
@@ -544,7 +572,7 @@ function NumberObject(glContext, size) {
 
         var textureArray = [];
         for (var i = 0; i < stringValue.length; i++) {
-            textureArray.push(digitTextures[parseInt(stringValue[i])]);
+            textureArray.push(digitTextures[parseInt(stringValue.charAt(i))]);
         }
         if (!number.assignTextures(textureArray))
             console.log("Number error. Error re-assigning new Textures!");
@@ -599,8 +627,7 @@ var textureURLs = {
     bells:      "img/bells_512.jpg",
     sevens:     "img/seven_512.jpg",
     blanks:     "img/blank_512.jpg",
-    digitZero: "img/alphabet_a_512.jpg",
-//    digitZero:  "img/digits_0.jpg",
+    digitZero:  "img/digits_0.jpg",
     digitOne:   "img/digits_1.jpg",
     digitTwo:   "img/digits_2.jpg",
     digitThree: "img/digits_3.jpg",
@@ -635,6 +662,26 @@ var digitsTextureNameList = ["digitZero", "digitOne", "digitTwo", "digitThree", 
 var allTexturesLoaded = false;
 var betButtonValues = [1, -1, 5, -5, 10, -10, 50, -50, 100, -100];
 var betButtonTextureNameList = ["buttonGreen1", "buttonRed1", "buttonGreen5", "buttonRed5", "buttonGreen10", "buttonRed10", "buttonGreen50", "buttonRed50", "buttonGreen100", "buttonRed100"];
+
+var alphabet = "abcdefghijklmnopqrstuvwxyz";
+var alphabetTextureNameList = { lowercase: [], uppercase: [] };
+
+// Load lowercase character set
+for (var letter = 0; letter < alphabet.length; letter++) {
+    var character = alphabet.charAt(letter);
+    var textureName = "alphabetLowercase-" + character;
+    textureURLs[textureName] = "img/alphabet/lowercase/alphabet_" + character + "_512.jpg";
+    alphabetTextureNameList.lowercase.push(textureName);
+}
+
+// Load uppercase character set
+for (var letter = 0; letter < alphabet.length; letter++) {
+    var character = alphabet.charAt(letter).toUpperCase();
+    var textureName = "alphabetUppercase-" + character;
+    textureURLs[textureName] = "img/alphabet/uppercase/alphabet_" + character + "_512.jpg";
+    alphabetTextureNameList.uppercase.push(textureName);
+}
+
 
 
     function initGL(canvas) {
@@ -809,10 +856,23 @@ var betButtonTextureNameList = ["buttonGreen1", "buttonRed1", "buttonGreen5", "b
                     stopButtons[i].activate(false);
                 }
 
+
+                var textureList = [];
+                for (var character = 0; character < alphabetTextureNameList.lowercase.length; character++) {
+                    textureList.push(loadedTextures[alphabetTextureNameList.lowercase[character]]);
+                }
+
                 labels["jackpot"] = new LabelObject(gl);
-                labels["jackpot"].setDimensions([0.75, 0.15, 0]);
-                labels["jackpot"].create([loadedTextures.labelJackpot], shaderProgram);
-                labels["jackpot"].setPosition([-0.6, 0.9, 0]);
+                labels["jackpot"].create(textureList, shaderProgram, "abcdefghijklmnopqrstuvwxyz");
+                labels["jackpot"].setPosition([-0.95, 0.9, 0]);
+
+                var textureList2 = [];
+                for (var character = 0; character < alphabetTextureNameList.uppercase.length; character++) {
+                    textureList2.push(loadedTextures[alphabetTextureNameList.uppercase[character]]);
+                }
+                labels["caps"] = new LabelObject(gl);
+                labels["caps"].create(textureList2, shaderProgram, "abcdefghijklmnopqrstuvwxyz");
+                labels["caps"].setPosition([-0.95, 0.75, 0]);
 
                 numbers["jackpot"] = new NumberObject(gl, 10);
                 numbers["jackpot"].create([
@@ -920,6 +980,7 @@ var betButtonTextureNameList = ["buttonGreen1", "buttonRed1", "buttonGreen5", "b
         }
 
         labels["jackpot"].draw(mvMatrix);
+        labels["caps"].draw(mvMatrix);
 
         numbers["jackpot"].setValue(totalBet);
         numbers["jackpot"].draw(mvMatrix);
