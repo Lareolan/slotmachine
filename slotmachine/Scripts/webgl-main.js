@@ -116,8 +116,7 @@
     this.stop = function () {
         if (spinning) {
             stopping = true;
-            result = Math.floor(Math.random() * 8);
-//            console.log("Drum result: " + textureNameList[result]);
+            result = window.getSpinResult();
 
             currentItem = ((result - 3) < 0) ? (result - 3) + 8 : (result - 3);
             drum.setRotation([currentItem * angleDelta, 0, 0]);
@@ -271,8 +270,12 @@ function ButtonObject(glContext) {
         if ((!clicked) && (active)) {
             buttonPosition.z -= 0.05;
             clicked = true;
-            if ((window.totalBet + buttonValue) >= 0) {
-                window.totalBet += buttonValue;
+
+            // increase or reduce player money
+            if ((window.numberValues.playerBet + buttonValue) >= 0) {
+                window.numberValues.playerBet += buttonValue;
+            } else {
+                window.numberValues.playerBet = 0;
             }
 
             setTimeout(depressButton, 200);
@@ -314,7 +317,7 @@ function StartButtonObject(glContext) {
     var gl = glContext;
     var button;
     var buttonPosition = { x: 0, y: 0, z: 0 };
-    var active = true;        // Current state
+    var active = false;        // Current state
 
     var vertArray = [];
     var texCoordsArray = [];
@@ -368,6 +371,9 @@ function StartButtonObject(glContext) {
 
     this.click = function (drums) {
         if (active) {
+            window.currentGameState = window.gameState.Spinning;
+            window.numberValues.jackpot += parseInt(window.numberValues.playerBet * 0.1);
+            window.numberValues.playerMoney -= window.numberValues.playerBet;
             buttonPosition.z -= 0.05;
             active = false;
 
@@ -387,11 +393,19 @@ function StartButtonObject(glContext) {
 //        clicked = false;
     }
 
-    this.activate = function () {
-        if (!button.assignTextures([buttonTextures[0]])) {
-            console.log("Start Button error. Error re-assigning new Textures!");
+    this.activate = function (state) {
+        if ((state === undefined) || (state)) {
+            if (!button.assignTextures([buttonTextures[0]])) {
+                console.log("Start Button error. Error re-assigning new Textures!");
+            } else {
+                active = true;
+            }
         } else {
-            active = true;
+            if (!button.assignTextures([buttonTextures[1]])) {
+                console.log("Start Button error. Error re-assigning new Textures!");
+            } else {
+                active = false;
+            }
         }
     }
 
@@ -405,6 +419,8 @@ function LabelObject(glContext) {
     var label;
     var labelValue = "";
     var labelPosition = { x: 0, y: 0, z: 0 };
+    var labelCharWidth = 0.05;
+    var labelCharHeight = 0.10;
 
     var vertArray = [];
     var texCoordsArray = [];
@@ -419,15 +435,15 @@ function LabelObject(glContext) {
     ];
 
     var letterVertices = [
-        vec3.fromValues(0.045, 0.075, 0.1),
-        vec3.fromValues(-0.045, 0.075, 0.1),
-        vec3.fromValues(0.045, -0.075, 0.1),
-        vec3.fromValues(-0.045, -0.075, 0.1)
+        vec3.fromValues((labelCharWidth / 2), (labelCharHeight / 2), 0.1),
+        vec3.fromValues(-(labelCharWidth / 2), (labelCharHeight / 2), 0.1),
+        vec3.fromValues((labelCharWidth / 2), -(labelCharHeight / 2), 0.1),
+        vec3.fromValues(-(labelCharWidth / 2), -(labelCharHeight / 2), 0.1)
     ];
 
-    this.create = function (textureArray, shaderProgram, labelText) {
+    this.create = function (textureObject, shaderProgram, labelText) {
         labelValue = labelText;
-        letterTextures = textureArray.slice();
+//        letterTextures = textureArray.slice();
         var currentTexturesArray = [];
         var transformationMatrix = mat4.create();
         var translation = vec3.create();
@@ -438,7 +454,7 @@ function LabelObject(glContext) {
 
             for (var j = 0; j < letterVertices.length; j++) {
                 mat4.identity(transformationMatrix);
-                vec3.set(translation, (0.09 * i), 0.0, 0.0);
+                vec3.set(translation, (labelCharWidth * i), 0.0, 0.0);
                 mat4.translate(transformationMatrix, transformationMatrix, translation);
 
                 vec3.transformMat4(newXYZ, letterVertices[j], transformationMatrix);
@@ -447,8 +463,9 @@ function LabelObject(glContext) {
             }
             texCoordsArray.push(textureCoords);
 
-            var textureID = labelText.charCodeAt(i) - 'a'.charCodeAt(0);
-            currentTexturesArray.push(textureArray[textureID]);
+//            var textureID = labelText.charCodeAt(i) - 'a'.charCodeAt(0);
+//            currentTexturesArray.push(textureArray[textureID]);
+            currentTexturesArray.push(textureObject[labelText.charAt(i)]);
         }
 
         label = new webgl.object3d(gl);
@@ -494,6 +511,8 @@ function NumberObject(glContext, size) {
     var numberValue = 0;
     var digitCount = size;
     var numberPosition = { x: 0, y: 0, z: 0 };
+    var numberDigitWidth = 0.05; //0.09;
+    var numberDigitHeight = 0.1; //0.15;
 
     var vertArray = [];
     var texCoordsArray = [];
@@ -508,10 +527,10 @@ function NumberObject(glContext, size) {
     ];
 
     var digitVertices = [
-        vec3.fromValues(0.045, 0.075, 0.1),
-        vec3.fromValues(-0.045, 0.075, 0.1),
-        vec3.fromValues(0.045, -0.075, 0.1),
-        vec3.fromValues(-0.045, -0.075, 0.1)
+        vec3.fromValues((numberDigitWidth / 2), (numberDigitHeight / 2), 0.1),
+        vec3.fromValues(-(numberDigitWidth / 2), (numberDigitHeight / 2), 0.1),
+        vec3.fromValues((numberDigitWidth / 2), -(numberDigitHeight / 2), 0.1),
+        vec3.fromValues(-(numberDigitWidth / 2), -(numberDigitHeight / 2), 0.1)
     ];
 
     this.create = function (textureArray, shaderProgram) {
@@ -526,7 +545,7 @@ function NumberObject(glContext, size) {
 
             for (var j = 0; j < digitVertices.length; j++) {
                 mat4.identity(transformationMatrix);
-                vec3.set(translation, (0.09 * i), 0.0, 0.0);
+                vec3.set(translation, (numberDigitWidth * i), 0.0, 0.0);
                 mat4.translate(transformationMatrix, transformationMatrix, translation);
 
                 vec3.transformMat4(newXYZ, digitVertices[j], transformationMatrix);
@@ -600,7 +619,8 @@ function NumberObject(glContext, size) {
 
 
 
-
+var currentGameState = 1;
+var gameState = {"Inactive": 0, "Active": 1, "Spinning": 2 };
 
 var drumCount = 5;
 var drums = [];
@@ -612,7 +632,8 @@ var stopButtons = [];
 var labels = {};
 var numbers = {};
 
-var totalBet = 0;
+var numberValues = { jackpot: 5000, playerBet: 0, playerMoney: 1000, moneyWon: 0, wins: 0, losses: 0, totalTurns: 0 };
+//var playerBet = 0;
 
 
 var translation = vec3.create();
@@ -639,8 +660,8 @@ var textureURLs = {
     digitNine:  "img/digits_9.jpg",
     digitNine:  "img/digits_9.jpg",
     machine:    "img/machine_512.jpg",
-    startGreen: "img/start_button_green.png",
-    startRed:   "img/start_button_red.png",
+    startGreen: "img/start_button_green_512.png",
+    startRed:   "img/start_button_red_512.png",
     buttonGreen1:   "img/button_plus_1_512.png",
     buttonGreen5:   "img/button_plus_5_512.png",
     buttonGreen10:  "img/button_plus_10_512.png",
@@ -653,9 +674,9 @@ var textureURLs = {
     buttonRed100:   "img/button_minus_100_512.png",
     stopButtonGreen: "img/stop_button_green_512.png",
     stopButtonRed:  "img/stop_button_red_512.png",
-    labelJackpot:   "img/label_jackpot_512.png",
-    test: "img/test_button_512.jpg"
-//    test: "img/seven_512.png"
+    colon:      "img/alphabet/alphabet_colon_256.png",
+    space:      "img/alphabet/alphabet_space_256.png",
+    test:       "img/test_button_512.jpg"
 };
 var drumTextureNameList = ["grapes", "bananas", "oranges", "cherries", "bars", "bells", "sevens", "blanks"];
 var digitsTextureNameList = ["digitZero", "digitOne", "digitTwo", "digitThree", "digitFour", "digitFive", "digitSix", "digitSeven", "digitEight", "digitNine"];
@@ -669,17 +690,19 @@ var alphabetTextureNameList = { lowercase: [], uppercase: [] };
 // Load lowercase character set
 for (var letter = 0; letter < alphabet.length; letter++) {
     var character = alphabet.charAt(letter);
-    var textureName = "alphabetLowercase-" + character;
-    textureURLs[textureName] = "img/alphabet/lowercase/alphabet_" + character + "_512.jpg";
+    var textureName = /* "alphabetLowercase-" + */ character;
+    textureURLs[textureName] = "img/alphabet/lowercase/alphabet_" + character + "_256.png";
     alphabetTextureNameList.lowercase.push(textureName);
+//    alphabetTextureNameList.push(textureName);
 }
 
 // Load uppercase character set
 for (var letter = 0; letter < alphabet.length; letter++) {
     var character = alphabet.charAt(letter).toUpperCase();
-    var textureName = "alphabetUppercase-" + character;
-    textureURLs[textureName] = "img/alphabet/uppercase/alphabet_" + character + "_512.jpg";
+    var textureName = /* "alphabetUppercase-" + */ character;
+    textureURLs[textureName] = "img/alphabet/uppercase/alphabet_" + character + "_256.png";
     alphabetTextureNameList.uppercase.push(textureName);
+//    alphabetTextureNameList.push(textureName);
 }
 
 
@@ -816,18 +839,6 @@ for (var letter = 0; letter < alphabet.length; letter++) {
                     loadedTextures.machine,
                     loadedTextures.machine,
                     loadedTextures.machine
-/*
-                    loadedTextures.test,
-                    loadedTextures.test,
-                    loadedTextures.test,
-                    loadedTextures.test,
-                    loadedTextures.test,
-                    loadedTextures.test,
-                    loadedTextures.test,
-                    loadedTextures.test,
-                    loadedTextures.test,
-                    loadedTextures.test
-*/
                 ], shaderProgram);
 
                 var buttonXOffset = -0.82
@@ -856,26 +867,49 @@ for (var letter = 0; letter < alphabet.length; letter++) {
                     stopButtons[i].activate(false);
                 }
 
+                // Create the charset list object
+                var textureList = {};
+                var character;
+                for (var i = 0; i < alphabetTextureNameList.lowercase.length; i++) {
+                    character = String.fromCharCode('a'.charCodeAt(0) + i);
+                    textureList[character] = loadedTextures[alphabetTextureNameList.lowercase[i]];
 
-                var textureList = [];
-                for (var character = 0; character < alphabetTextureNameList.lowercase.length; character++) {
-                    textureList.push(loadedTextures[alphabetTextureNameList.lowercase[character]]);
+                    character = String.fromCharCode('A'.charCodeAt(0) + i);
+                    textureList[character] = loadedTextures[alphabetTextureNameList.uppercase[i]];
                 }
+                textureList[":"] = loadedTextures.colon;
+                textureList[" "] = loadedTextures.space;
 
                 labels["jackpot"] = new LabelObject(gl);
-                labels["jackpot"].create(textureList, shaderProgram, "abcdefghijklmnopqrstuvwxyz");
-                labels["jackpot"].setPosition([-0.95, 0.9, 0]);
+//                labels["jackpot"].create(textureList, shaderProgram, "abcdefghijklmnopqrstuvwxyz:");
+                labels["jackpot"].create(textureList, shaderProgram, "Jackpot:");
+                labels["jackpot"].setPosition([-0.95, 0.95, 0]);
 
-                var textureList2 = [];
-                for (var character = 0; character < alphabetTextureNameList.uppercase.length; character++) {
-                    textureList2.push(loadedTextures[alphabetTextureNameList.uppercase[character]]);
-                }
-                labels["caps"] = new LabelObject(gl);
-                labels["caps"].create(textureList2, shaderProgram, "abcdefghijklmnopqrstuvwxyz");
-                labels["caps"].setPosition([-0.95, 0.75, 0]);
+                labels["playerMoney"] = new LabelObject(gl);
+                labels["playerMoney"].create(textureList, shaderProgram, "Player Money:");
+                labels["playerMoney"].setPosition([-0.95, 0.8, 0]);
 
-                numbers["jackpot"] = new NumberObject(gl, 10);
-                numbers["jackpot"].create([
+                labels["playerBet"] = new LabelObject(gl);
+                labels["playerBet"].create(textureList, shaderProgram, "Bet:");
+                labels["playerBet"].setPosition([-0.95, 0.65, 0]);
+
+                labels["moneyWon"] = new LabelObject(gl);
+                labels["moneyWon"].create(textureList, shaderProgram, "Won:");
+                labels["moneyWon"].setPosition([-0.95, 0.5, 0]);
+
+                labels["totalTurns"] = new LabelObject(gl);
+                labels["totalTurns"].create(textureList, shaderProgram, "Turns:");
+                labels["totalTurns"].setPosition([0.3, 0.8, 0]);
+
+                labels["wins"] = new LabelObject(gl);
+                labels["wins"].create(textureList, shaderProgram, "Wins:");
+                labels["wins"].setPosition([0.3, 0.65, 0]);
+
+                labels["losses"] = new LabelObject(gl);
+                labels["losses"].create(textureList, shaderProgram, "Losses:");
+                labels["losses"].setPosition([0.3, 0.5, 0]);
+
+                var digitTextureList = [
                     loadedTextures.digitZero,
                     loadedTextures.digitOne,
                     loadedTextures.digitTwo,
@@ -886,9 +920,34 @@ for (var letter = 0; letter < alphabet.length; letter++) {
                     loadedTextures.digitSeven,
                     loadedTextures.digitEight,
                     loadedTextures.digitNine
-                ], shaderProgram);
-                numbers["jackpot"].setPosition([0.0, 0.9, 0]);
-                numbers["jackpot"].setValue(500);
+                ];
+                numbers["jackpot"] = new NumberObject(gl, 10);
+                numbers["jackpot"].create(digitTextureList, shaderProgram);
+                numbers["jackpot"].setPosition([-0.5, 0.95, 0]);
+
+                numbers["playerMoney"] = new NumberObject(gl, 6);
+                numbers["playerMoney"].create(digitTextureList, shaderProgram);
+                numbers["playerMoney"].setPosition([-0.25, 0.8, 0]);
+
+                numbers["playerBet"] = new NumberObject(gl, 6);
+                numbers["playerBet"].create(digitTextureList, shaderProgram);
+                numbers["playerBet"].setPosition([-0.5, 0.65, 0]);
+
+                numbers["moneyWon"] = new NumberObject(gl, 10);
+                numbers["moneyWon"].create(digitTextureList, shaderProgram);
+                numbers["moneyWon"].setPosition([-0.5, 0.5, 0]);
+
+                numbers["totalTurns"] = new NumberObject(gl, 5);
+                numbers["totalTurns"].create(digitTextureList, shaderProgram);
+                numbers["totalTurns"].setPosition([0.7, 0.8, 0]);
+
+                numbers["wins"] = new NumberObject(gl, 5);
+                numbers["wins"].create(digitTextureList, shaderProgram);
+                numbers["wins"].setPosition([0.7, 0.65, 0]);
+
+                numbers["losses"] = new NumberObject(gl, 5);
+                numbers["losses"].create(digitTextureList, shaderProgram);
+                numbers["losses"].setPosition([0.7, 0.5, 0]);
 
 
                 tick();
@@ -941,7 +1000,15 @@ for (var letter = 0; letter < alphabet.length; letter++) {
     function tick() {
         requestAnimFrame(tick);
         drawScene();
-        if (!startButton.isActive()) {
+
+        if (currentGameState == gameState.Active) {
+            if (numberValues.playerBet === 0) {
+                startButton.activate(false);
+            } else {
+                startButton.activate();
+            }
+        }
+        if (currentGameState == gameState.Spinning) {
             testWin();
         }
     }
@@ -979,11 +1046,19 @@ for (var letter = 0; letter < alphabet.length; letter++) {
             stopButtons[i].draw(mvMatrix);
         }
 
-        labels["jackpot"].draw(mvMatrix);
-        labels["caps"].draw(mvMatrix);
+        $.each(labels, function () {
+            this.draw(mvMatrix);
+        });
+//        labels["jackpot"].draw(mvMatrix);
+//        labels["money"].draw(mvMatrix);
 
-        numbers["jackpot"].setValue(totalBet);
-        numbers["jackpot"].draw(mvMatrix);
+//        numbers["jackpot"].setValue(playerBet);
+//        numbers["jackpot"].draw(mvMatrix);
+        $.each(numbers, function (index) {
+            this.setValue(numberValues[index]);
+            this.draw(mvMatrix);
+        });
+
     }
 
     function testWin() {
@@ -1001,7 +1076,8 @@ for (var letter = 0; letter < alphabet.length; letter++) {
             result.push(drumTextureNameList[drums[drum].getResult()]);
         }
         if (stopped) {
-            startButton.activate();
+            currentGameState = gameState.Active;
+//            startButton.activate();
             console.log(result.join(" - "));
             //setTimeout(startButton.activate, 1500);
         }
@@ -1021,42 +1097,50 @@ $(document).ready(function () {
             y: (e.clientY - rect.top) / (rect.bottom - rect.top) * this.height
         };
 
-        // Betting Button rectangles
-        var startXOffset = 409;
-        var startYOffset = 699;
-        for (var i = 0; i < betButtons.length; i++) {
-            if ((i % 2) === 0) {
-                if (((mouse.x > startXOffset + 112 * parseInt(i / 2)) && (mouse.x < (startXOffset + 106) + 112 * parseInt(i / 2)))
-                    && ((mouse.y > startYOffset) && (mouse.y < startYOffset + 66))) {
-                    betButtons[i].click();
-                }
-            } else {
-                if (((mouse.x > startXOffset + 112 * parseInt(i / 2)) && (mouse.x < (startXOffset + 106) + 112 * parseInt(i / 2)))
-                    && ((mouse.y > startYOffset + 74) && (mouse.y < startYOffset + 140))) {
-                    betButtons[i].click();
-                }
-            }
-        }
-
-
-        // Stop Button rectangles
-        var startXOffset = 516;
-        var startYOffset = 600;
-        for (var i = 0; i < stopButtons.length; i++) {
-            if (((mouse.x > startXOffset + 116 * i) && (mouse.x < (startXOffset + 106) + 116 * i))
-                                && ((mouse.y > startYOffset) && (mouse.y < startYOffset + 66))) {
-                if (stopButtons[i].isActive()) {
-                    stopButtons[i].click();
-                    drums[i].stop();
+        // Betting Button rectangles, only check if game is in "Active" state
+        if (currentGameState == gameState.Active) {
+            var startXOffset = 409;
+            var startYOffset = 699;
+            for (var i = 0; i < betButtons.length; i++) {
+                if ((i % 2) === 0) {
+                    if (((mouse.x > startXOffset + 112 * parseInt(i / 2)) && (mouse.x < (startXOffset + 106) + 112 * parseInt(i / 2)))
+                        && ((mouse.y > startYOffset) && (mouse.y < startYOffset + 66))) {
+                        betButtons[i].click();
+                    }
+                } else {
+                    if (((mouse.x > startXOffset + 112 * parseInt(i / 2)) && (mouse.x < (startXOffset + 106) + 112 * parseInt(i / 2)))
+                        && ((mouse.y > startYOffset + 74) && (mouse.y < startYOffset + 140))) {
+                        betButtons[i].click();
+                    }
                 }
             }
         }
 
-        // Start Button rectangle
-        if (((mouse.x > 976) && (mouse.x < 1197)) && ((mouse.y > 699) && (mouse.y < 839))) {
-            startButton.click(drums);
+
+        // Stop Button rectangles, only test if game is in the "Spinning" state
+        if (currentGameState == gameState.Spinning) {
+            var startXOffset = 516;
+            var startYOffset = 600;
             for (var i = 0; i < stopButtons.length; i++) {
-                stopButtons[i].activate();
+                if (((mouse.x > startXOffset + 116 * i) && (mouse.x < (startXOffset + 106) + 116 * i))
+                                    && ((mouse.y > startYOffset) && (mouse.y < startYOffset + 66))) {
+                    if (stopButtons[i].isActive()) {
+                        stopButtons[i].click();
+                        drums[i].stop();
+                    }
+                }
+            }
+        }
+
+        // Start Button rectangle, only test if game is in the "Active" state
+        if (currentGameState == gameState.Active) {
+            if (((mouse.x > 976) && (mouse.x < 1197)) && ((mouse.y > 699) && (mouse.y < 839))) {
+                if (startButton.isActive()) {
+                    startButton.click(drums);
+                    for (var i = 0; i < stopButtons.length; i++) {
+                        stopButtons[i].activate();
+                    }
+                }
             }
         }
 

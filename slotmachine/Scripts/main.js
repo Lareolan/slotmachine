@@ -93,50 +93,44 @@ function checkRange(value, lowerBounds, upperBounds) {
     }
 }
 
-/* When this function is called it determines the betLine results.
-e.g. Bar - Orange - Banana */
-function Reels() {
-    var betLine = [" ", " ", " "];
-    var outCome = [0, 0, 0];
+/*
+ * When this function is called it determines the result of a single reel/drum.
+ * @returns The result of the drum spin
+ */
+function getSpinResult() {
+    var outcome;
+    var result;
 
-    for (var spin = 0; spin < 3; spin++) {
-        outCome[spin] = Math.floor((Math.random() * 65) + 1);
-        switch (outCome[spin]) {
-            case checkRange(outCome[spin], 1, 27):  // 41.5% probability
-                betLine[spin] = "blank";
-                blanks++;
-                break;
-            case checkRange(outCome[spin], 28, 37): // 15.4% probability
-                betLine[spin] = "Grapes";
-                grapes++;
-                break;
-            case checkRange(outCome[spin], 38, 46): // 13.8% probability
-                betLine[spin] = "Banana";
-                bananas++;
-                break;
-            case checkRange(outCome[spin], 47, 54): // 12.3% probability
-                betLine[spin] = "Orange";
-                oranges++;
-                break;
-            case checkRange(outCome[spin], 55, 59): //  7.7% probability
-                betLine[spin] = "Cherry";
-                cherries++;
-                break;
-            case checkRange(outCome[spin], 60, 62): //  4.6% probability
-                betLine[spin] = "Bar";
-                bars++;
-                break;
-            case checkRange(outCome[spin], 63, 64): //  3.1% probability
-                betLine[spin] = "Bell";
-                bells++;
-                break;
-            case checkRange(outCome[spin], 65, 65): //  1.5% probability
-                betLine[spin] = "Seven";
-                sevens++;
-                break;
-        }
+    var drumTextureNameList = ["grapes", "bananas", "oranges", "cherries", "bars", "bells", "sevens", "blanks"];
+    outcome = Math.floor((Math.random() * 65) + 1);
+    switch (outcome) {
+        case checkRange(outcome, 1, 27):  // 41.5% probability
+            result = drumTextureNameList.indexOf("blanks");
+            blanks++;
+            break;
+        case checkRange(outcome, 28, 37): // 15.4% probability
+            result = drumTextureNameList.indexOf("grapes");
+            break;
+        case checkRange(outcome, 38, 46): // 13.8% probability
+            result = drumTextureNameList.indexOf("bananas");
+            break;
+        case checkRange(outcome, 47, 54): // 12.3% probability
+            result = drumTextureNameList.indexOf("oranges");
+            break;
+        case checkRange(outcome, 55, 59): //  7.7% probability
+            result = drumTextureNameList.indexOf("cherries");
+            break;
+        case checkRange(outcome, 60, 62): //  4.6% probability
+            result = drumTextureNameList.indexOf("bars");
+            break;
+        case checkRange(outcome, 63, 64): //  3.1% probability
+            result = drumTextureNameList.indexOf("bells");
+            break;
+        case checkRange(outcome, 65, 65): //  1.5% probability
+            result = drumTextureNameList.indexOf("sevens");
+            break;
     }
-    return betLine;
+    return result;
 }
 
 /* This function calculates the player's winnings, if any */
