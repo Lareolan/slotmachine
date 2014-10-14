@@ -690,19 +690,17 @@ var alphabetTextureNameList = { lowercase: [], uppercase: [] };
 // Load lowercase character set
 for (var letter = 0; letter < alphabet.length; letter++) {
     var character = alphabet.charAt(letter);
-    var textureName = /* "alphabetLowercase-" + */ character;
+    var textureName = character;
     textureURLs[textureName] = "img/alphabet/lowercase/alphabet_" + character + "_256.png";
     alphabetTextureNameList.lowercase.push(textureName);
-//    alphabetTextureNameList.push(textureName);
 }
 
 // Load uppercase character set
 for (var letter = 0; letter < alphabet.length; letter++) {
     var character = alphabet.charAt(letter).toUpperCase();
-    var textureName = /* "alphabetUppercase-" + */ character;
+    var textureName = character;
     textureURLs[textureName] = "img/alphabet/uppercase/alphabet_" + character + "_256.png";
     alphabetTextureNameList.uppercase.push(textureName);
-//    alphabetTextureNameList.push(textureName);
 }
 
 
@@ -881,7 +879,6 @@ for (var letter = 0; letter < alphabet.length; letter++) {
                 textureList[" "] = loadedTextures.space;
 
                 labels["jackpot"] = new LabelObject(gl);
-//                labels["jackpot"].create(textureList, shaderProgram, "abcdefghijklmnopqrstuvwxyz:");
                 labels["jackpot"].create(textureList, shaderProgram, "Jackpot:");
                 labels["jackpot"].setPosition([-0.95, 0.95, 0]);
 
@@ -1030,8 +1027,6 @@ for (var letter = 0; letter < alphabet.length; letter++) {
             drums[drum].draw(mvMatrix);
         }
 
-//        vec3.set(translation, 0.0, 0.0, 14.0);
-//        mat4.translate(mvMatrix, mvMatrix, translation);
         mat4.identity(mvMatrix);
         machine.draw(mvMatrix);
 
@@ -1049,16 +1044,11 @@ for (var letter = 0; letter < alphabet.length; letter++) {
         $.each(labels, function () {
             this.draw(mvMatrix);
         });
-//        labels["jackpot"].draw(mvMatrix);
-//        labels["money"].draw(mvMatrix);
 
-//        numbers["jackpot"].setValue(playerBet);
-//        numbers["jackpot"].draw(mvMatrix);
         $.each(numbers, function (index) {
             this.setValue(numberValues[index]);
             this.draw(mvMatrix);
         });
-
     }
 
     function testWin() {
@@ -1077,9 +1067,8 @@ for (var letter = 0; letter < alphabet.length; letter++) {
         }
         if (stopped) {
             currentGameState = gameState.Active;
-//            startButton.activate();
+            window.numberValues.playerBet = 0;
             console.log(result.join(" - "));
-            //setTimeout(startButton.activate, 1500);
         }
     }
 
@@ -1156,47 +1145,6 @@ $("canvas").click(function () {
     }, 200);
 });
 
-/*
-$("#start1").click(function () {
-    drums[0].spin();
-});
-
-$("#start2").click(function () {
-    drums[1].spin();
-});
-
-$("#start3").click(function () {
-    drums[2].spin();
-});
-
-$("#start4").click(function () {
-    drums[3].spin();
-});
-
-$("#start5").click(function () {
-    drums[4].spin();
-});
-
-$("#stop1").click(function () {
-    drums[0].stop();
-});
-
-$("#stop2").click(function () {
-    drums[1].stop();
-});
-
-$("#stop3").click(function () {
-    drums[2].stop();
-});
-
-$("#stop4").click(function () {
-    drums[3].stop();
-});
-
-$("#stop5").click(function () {
-    drums[4].stop();
-});
-*/
 
 
 

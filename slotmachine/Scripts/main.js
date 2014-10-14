@@ -85,7 +85,7 @@ function showLossMessage() {
 
 /* Utility function to check if a value falls within a range of bounds */
 function checkRange(value, lowerBounds, upperBounds) {
-    if (value >= lowerBounds && value <= upperBounds) {
+    if ((value >= lowerBounds) && (value <= upperBounds)) {
         return value;
     }
     else {
