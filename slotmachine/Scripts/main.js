@@ -101,40 +101,113 @@ function getSpinResult() {
     var outcome;
     var result;
 
-    var drumTextureNameList = ["grapes", "bananas", "oranges", "cherries", "bars", "bells", "sevens", "blanks"];
-    outcome = Math.floor((Math.random() * 65) + 1);
+    outcome = Math.floor((Math.random() * 100) + 1);
     switch (outcome) {
-        case checkRange(outcome, 1, 27):  // 41.5% probability
+        case checkRange(outcome, 1, 25):  // 41.5% probability  // 25%
             result = drumTextureNameList.indexOf("blanks");
-            blanks++;
             break;
-        case checkRange(outcome, 28, 37): // 15.4% probability
+        case checkRange(outcome, 26, 50): // 15.4% probability  // 25%
             result = drumTextureNameList.indexOf("grapes");
             break;
-        case checkRange(outcome, 38, 46): // 13.8% probability
+        case checkRange(outcome, 51, 65): // 13.8% probability  // 15%
             result = drumTextureNameList.indexOf("bananas");
             break;
-        case checkRange(outcome, 47, 54): // 12.3% probability
+        case checkRange(outcome, 66, 77): // 12.3% probability  // 12%
             result = drumTextureNameList.indexOf("oranges");
             break;
-        case checkRange(outcome, 55, 59): //  7.7% probability
+        case checkRange(outcome, 78, 85): //  7.7% probability  // 8%
             result = drumTextureNameList.indexOf("cherries");
             break;
-        case checkRange(outcome, 60, 62): //  4.6% probability
+        case checkRange(outcome, 86, 92): //  4.6% probability  // 7%
             result = drumTextureNameList.indexOf("bars");
             break;
-        case checkRange(outcome, 63, 64): //  3.1% probability
+        case checkRange(outcome, 93, 97): //  3.1% probability  // 5%
             result = drumTextureNameList.indexOf("bells");
             break;
-        case checkRange(outcome, 65, 65): //  1.5% probability
+        case checkRange(outcome, 98, 100): //  1.5% probability // 3%
             result = drumTextureNameList.indexOf("sevens");
             break;
     }
     return result;
 }
 
-/* This function calculates the player's winnings, if any */
-function determineWinnings() {
+/* 
+ * Utility function to determine if the roll resulted in jackpot.
+ * To win the jackpot, must have 3 sevens on the bet line with no blanks.
+ * @returns True if results in jackpot, else returns false
+ */
+function isJackpot(results) {
+    var sevens = 0;
+
+    if ($.inArray("blanks", results) !== -1) {
+        return false;
+    }
+
+    for (var i = 0; i < results.length; i++) {
+        if (results[i] == "sevens") {
+            sevens++;
+        }
+    }
+    return (sevens >= 3);
+}
+
+/* This function calculates the player's win multiplier, if any */
+function determineMultiplier(results) {
+    var finalMultiplier = 0;
+    var multiplier = 0;
+    var count = 1;
+
+    if ($.inArray("blanks", results) !== -1) {
+        return 0;
+    }
+
+    var item = results[0];
+    multiplier = getMultiplier(item);
+    for (var i = 1; i < results.length; i++) {
+        if (item === results[i]) {
+            count++;
+        } else {
+            finalMultiplier += multiplier * Math.pow(count, 2);
+            count = 1;
+            item = results[i];
+            multiplier = getMultiplier(item);
+        }
+    }
+    finalMultiplier += multiplier * Math.pow(count, 2);
+
+    return finalMultiplier;
+}
+
+function getMultiplier(item) {
+    var result;
+    switch (item) {
+        case "grapes":
+            result = 1;
+            break;
+        case "bananas":
+            result = 2;
+            break;
+        case "oranges":
+            result = 3;
+            break;
+        case "cherries":
+            result = 4;
+            break;
+        case "bars":
+            result = 5;
+            break;
+        case "bells":
+            result = 6;
+            break;
+        case "sevens":
+            result = 10;
+            break;
+    }
+    return result;
+}
+
+
+function determineWinnings2() {
     if (blanks == 0) {
         if (grapes == 3) {
             winnings = playerBet * 10;
