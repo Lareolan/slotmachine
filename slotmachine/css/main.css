@@ -1,4 +1,12 @@
-﻿html, body {
+﻿/**
+ * This file contains the primary style sheet for the game
+ * Author:              Konstantin Koton
+ * Filename:            main.css
+ * Last Modified By:    Konstantin Koton
+ * Date Last Modified:  Oct. 15, 2014
+ * Revision History:    None
+ */
+html, body {
     width: 100%;
     height: 100%;
     margin: 0;

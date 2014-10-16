@@ -1,4 +1,13 @@
-﻿if (!window.webgl) {
+﻿/**
+ * This file contains the code for creating and rendering a generic WebGL 3D object
+ * Author:              Konstantin Koton
+ * Filename:            webgl-objects.js
+ * Last Modified By:    Konstantin Koton
+ * Date Last Modified:  Oct. 15, 2014
+ * Revision History:    Too numerous to mention
+ */
+
+if (!window.webgl) {
     window.webgl = {};
 }
 

@@ -143,11 +143,14 @@
     <Content Include="img\digits_9.jpg" />
     <Content Include="img\grapes_512.jpg" />
     <Content Include="img\grapes_512.png" />
+    <Content Include="img\jackpot_256.png" />
     <Content Include="img\machine_512.jpg" />
     <Content Include="img\orange_512.jpg" />
     <Content Include="img\orange_512.png" />
     <Content Include="img\pointer.cur" />
     <Content Include="img\pointerDown.cur" />
+    <Content Include="img\power_button_256.png" />
+    <Content Include="img\reset_button_256.png" />
     <Content Include="img\seven_512.jpg" />
     <Content Include="img\seven_512.png" />
     <Content Include="img\start_button_green_512.png" />
@@ -157,7 +160,6 @@
     <Content Include="img\test_button_512.jpg" />
     <Content Include="Scripts\gl-matrix-min.js" />
     <Content Include="Scripts\gl-matrix.js" />
-    <Content Include="JavaScript\glMatrix-0.9.5.min.js" />
     <Content Include="Resource\fragment.shader" />
     <Content Include="Resource\vertex.shader" />
     <None Include="Web.Debug.config">
@@ -173,8 +175,6 @@
     <Content Include="Scripts\webgl-main.js" />
     <Content Include="Scripts\jquery.js" />
     <Content Include="Scripts\main.js" />
-    <Content Include="JavaScript\webgl-libs.js" />
-    <Content Include="JavaScript\webgl-main.js" />
     <None Include="Scripts\_references.js" />
     <Content Include="Scripts\webgl-objects.js" />
     <Content Include="Scripts\webgl-utils.js" />
