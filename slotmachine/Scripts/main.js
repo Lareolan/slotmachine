@@ -148,12 +148,6 @@ $(document).ready(function () {
     // Initiate the game
     webGLStart();
 
-    var wgl = new WebGL();
-
-    wgl.loadTextures(textureURLs /*{ test: "img/test_button_512.jpg" }*/, function () {
-        alert("loaded");
-    });
-
     // Mouse click handler for the canvas, outlining the click rectangles for all the buttons in the game
     $("#webgl-canvas").click(function (e) {
         var rect = this.getBoundingClientRect();

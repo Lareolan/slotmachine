@@ -8,43 +8,6 @@
  */
 
 window.WebGL = function () {
-    var _textures = {};
-    var _sounds = {};
-
-    this.getTextures = function () {
-        return _textures;
-    };
-
-    this.setTextures = function (textures) {
-        _textures = textures;
-    };
-
-    /**
-     * This function is a handler that is called after an image finishes loading, in order to convert the image into a WebGL texture.
-     * @param texture The texture object containing the image
-     */
-    this.handleLoadedTexture = function (texture) {
-        // Turn the texture parameter into a WebGL texture object
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-
-        // Flip the image pixels on Y-axis to convert from pixel space to texture space
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-
-        // Load the image into the texture
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
-
-        // Specify magnification extrapolation to be linear
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-
-        // Specify shrinking extrapolation to use linear mipmap extrapolation
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-
-        // Generate mipmaps for scalable square textures, ignore non-square textures
-        gl.generateMipmap(gl.TEXTURE_2D);
-
-        // Reset the current WebGL texture
-        gl.bindTexture(gl.TEXTURE_2D, null);
-    };
 };
 
 

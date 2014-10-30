@@ -172,7 +172,6 @@
   <ItemGroup>
     <Content Include="css\main.css" />
     <Content Include="index.html" />
-    <Content Include="Scripts\webgl-loader.js" />
     <Content Include="Scripts\webgl-main.js" />
     <Content Include="Scripts\jquery.js" />
     <Content Include="Scripts\main.js" />
