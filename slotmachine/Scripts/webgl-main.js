@@ -7,6 +7,47 @@
  * Revision History:    Too numerous to mention
  */
 
+window.WebGL = function () {
+    var _textures = {};
+    var _sounds = {};
+
+    this.getTextures = function () {
+        return _textures;
+    };
+
+    this.setTextures = function (textures) {
+        _textures = textures;
+    };
+
+    /**
+     * This function is a handler that is called after an image finishes loading, in order to convert the image into a WebGL texture.
+     * @param texture The texture object containing the image
+     */
+    this.handleLoadedTexture = function (texture) {
+        // Turn the texture parameter into a WebGL texture object
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+
+        // Flip the image pixels on Y-axis to convert from pixel space to texture space
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+
+        // Load the image into the texture
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
+
+        // Specify magnification extrapolation to be linear
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+        // Specify shrinking extrapolation to use linear mipmap extrapolation
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+
+        // Generate mipmaps for scalable square textures, ignore non-square textures
+        gl.generateMipmap(gl.TEXTURE_2D);
+
+        // Reset the current WebGL texture
+        gl.bindTexture(gl.TEXTURE_2D, null);
+    };
+};
+
+
 /**
  * This Object creates and handles the drums (or reels) for the game.
  */
@@ -52,7 +93,7 @@ function DrumObject(glContext) {
      * @param textureArray An array of textures, 1 texture per face of the drum/reel
      * @param shaderProgram The reference to the Shader Program Object to be used for rendering this object.
      */
-    this.create = function(textureArray, shaderProgram) {
+    this.create = function (textureArray, shaderProgram) {
         var transformationMatrix = mat4.create();
         var translation = vec3.create();
         var rotation = vec3.create();
@@ -82,13 +123,13 @@ function DrumObject(glContext) {
         }
 
         // Call the methods to create the 3d object
-        drum = new webgl.object3d(gl);
+        drum = new WebGL.object3d(gl);
         if (!drum.initGeometry(vertArray, texCoordsArray))
             console.log("Drum error. Error initializing Geometry!");
         if (!drum.assignTextures(textureArray))
             console.log("Drum error. Error assigning Textures!");
         drum.assignShaderProgram(shaderProgram);
-    }
+    };
 
     /**
      * This method is used to render the object onto the canvas
@@ -106,7 +147,7 @@ function DrumObject(glContext) {
         if (!drum.draw(translationMatrix))
             console.log("Drum Drawing error!");
 
-        // If the object is in the proccess of animating a "stop" command
+        // If the object is in the process of animating a "stop" command
         if (stopping) {
             // Get the rotation speed around the X-axis. If the speed is 0 or lower, then force animation to stop and reset the stopping and spinning flags
             var rotationSpeed = drum.getRotationSpeed()[0];
@@ -127,7 +168,7 @@ function DrumObject(glContext) {
                 }
             }
         }
-    }
+    };
 
     /**
      * This method sets the relative position of the object
@@ -137,7 +178,7 @@ function DrumObject(glContext) {
         drumPosition.x = position[0];
         drumPosition.y = position[1];
         drumPosition.z = position[2];
-    }
+    };
 
     /**
      * This function initiates the spin of the drum
@@ -147,12 +188,12 @@ function DrumObject(glContext) {
         // assign it a random initial facing and initiate the animation sequence. Also reset the current result.
         if (!spinning) {
             drum.setRotationSpeed([720, 0, 0]);
-            drum.setRotation([Math.random()* 8 * angleDelta, 0, 0]);
+            drum.setRotation([Math.random() * 8 * angleDelta, 0, 0]);
             drum.startAnimation();
             spinning = true;
             result = undefined;
         }
-    }
+    };
 
     /**
      * This function initiates the stopping of the drum
@@ -161,7 +202,7 @@ function DrumObject(glContext) {
         // If the drum is spinning and not already in the proccess of stopping, then set stopping flag. Get the expected result from the utility function
         // defined in main.js. Then to create the illusion the user has any say on when the drum really stops, set the current drum face 3 tiles away from
         // the selected tile and slow the spin down.
-        if ((spinning) && (!stopping)){
+        if ((spinning) && (!stopping)) {
             stopping = true;
             result = window.getSpinResult();
 
@@ -169,7 +210,7 @@ function DrumObject(glContext) {
             drum.setRotation([currentItem * angleDelta, 0, 0]);
             drum.setRotationSpeed([drum.getRotationSpeed()[0] / 4, 0, 0]);
         }
-    }
+    };
 
     /**
      * This method returns the front-facing tile of this drum if the drum is stopped
@@ -181,7 +222,7 @@ function DrumObject(glContext) {
         } else {
             return null;
         }
-    }
+    };
 
     /**
      * Returns the flag idicating whether or not this drum is currently spinning
@@ -189,7 +230,7 @@ function DrumObject(glContext) {
      */
     this.isSpinning = function () {
         return spinning;
-    }
+    };
 
     /**
      * This function resets the drum's rotation speed and flags, and sets the facing to the one provided by the parameter or a random one if parameter is not provided
@@ -203,7 +244,7 @@ function DrumObject(glContext) {
         drum.setRotationSpeed([0, 0, 0]);
         spinning = false;
         stopping = false;
-    }
+    };
 }
 
 /**
@@ -270,15 +311,15 @@ function MachineObject(glContext) {
         for (var i = 0; i < machineFaceCount; i++) {
             texCoordsArray.push(textureCoords);
         }
-        
+
         // And then create the actual 3d object
-        machine = new webgl.object3d(gl);
+        machine = new WebGL.object3d(gl);
         if (!machine.initGeometry(vertArray, texCoordsArray))
             console.log("Machine error. Error initializing Geometry!");
         if (!machine.assignTextures(textureArray))
             console.log("Machine error. Error assigning Textures!");
         machine.assignShaderProgram(shaderProgram);
-    }
+    };
 
     /**
      * This method is used to render the object onto the canvas
@@ -293,7 +334,7 @@ function MachineObject(glContext) {
         // Draw the object
         if (!machine.draw(translationMatrix))
             console.log("Machine Drawing error!");
-    }
+    };
 }
 
 /**
@@ -346,13 +387,13 @@ function ButtonObject(glContext) {
         currentTexturesArray.push(textureArray[0]);
 
         // Finally create the actual 3d object
-        button = new webgl.object3d(gl);
+        button = new WebGL.object3d(gl);
         if (!button.initGeometry(vertArray, texCoordsArray))
             console.log("Button error. Error initializing Geometry!");
         if (!button.assignTextures(currentTexturesArray))
             console.log("Button error. Error assigning Textures!");
         button.assignShaderProgram(shaderProgram);
-    }
+    };
 
     /**
      * This method is used to render the object onto the canvas
@@ -367,7 +408,7 @@ function ButtonObject(glContext) {
         // Draw the object
         if (!button.draw(translationMatrix))
             console.log("Button Drawing error!");
-    }
+    };
 
     /**
      * This method sets the relative position of the object
@@ -377,7 +418,7 @@ function ButtonObject(glContext) {
         buttonPosition.x = position[0];
         buttonPosition.y = position[1];
         buttonPosition.z = position[2];
-    }
+    };
 
     /**
      * This function is a click handler for the button object
@@ -403,7 +444,7 @@ function ButtonObject(glContext) {
             // Reset the button's z-axis position after 0.1 seconds, so it can be clicked again
             setTimeout(depressButton, 100);
         }
-    }
+    };
 
     /**
      * This function simply restores the button's z-axis position and resets clicked flag to false
@@ -421,7 +462,7 @@ function ButtonObject(glContext) {
      */
     this.setValue = function (value) {
         buttonValue = value;
-    }
+    };
 
     /**
      * This function activates (or de-activates) the button, and changes the textures appropriately
@@ -441,7 +482,7 @@ function ButtonObject(glContext) {
                 active = false;
             }
         }
-    }
+    };
 
     /**
      * This function returns whether or not the button is active
@@ -449,7 +490,7 @@ function ButtonObject(glContext) {
      */
     this.isActive = function () {
         return active;
-    }
+    };
 }
 
 /**
@@ -500,13 +541,13 @@ function StartButtonObject(glContext) {
         currentTexturesArray.push(textureArray[0]);
 
         // Finally create the actual 3d object
-        button = new webgl.object3d(gl);
+        button = new WebGL.object3d(gl);
         if (!button.initGeometry(vertArray, texCoordsArray))
             console.log("Start Button error. Error initializing Geometry!");
         if (!button.assignTextures(currentTexturesArray))
             console.log("Start Button error. Error assigning Textures!");
         button.assignShaderProgram(shaderProgram);
-    }
+    };
 
     /**
      * This method is used to render the object onto the canvas
@@ -521,7 +562,7 @@ function StartButtonObject(glContext) {
         // Draw the object
         if (!button.draw(translationMatrix))
             console.log("Start Button Drawing error!");
-    }
+    };
 
     /**
      * This method sets the relative position of the object
@@ -531,7 +572,7 @@ function StartButtonObject(glContext) {
         buttonPosition.x = position[0];
         buttonPosition.y = position[1];
         buttonPosition.z = position[2];
-    }
+    };
 
     /**
      * This function is a click handler for the Start button object
@@ -561,11 +602,11 @@ function StartButtonObject(glContext) {
 
                 setTimeout(depressButton, 100);
             }
-        // If the game state is inactive, that means we're in the welcome screen, so we switch game mode to active to start the game.
+            // If the game state is inactive, that means we're in the welcome screen, so we switch game mode to active to start the game.
         } else if (currentGameState === gameState.Inactive) {
             window.currentGameState = window.gameState.Active;
         }
-    }
+    };
 
     /**
      * This function simply restores the button's z-axis position and resets clicked flag to false
@@ -592,7 +633,7 @@ function StartButtonObject(glContext) {
                 active = false;
             }
         }
-    }
+    };
 
     /**
      * This function returns whether or not the button is active
@@ -600,7 +641,7 @@ function StartButtonObject(glContext) {
      */
     this.isActive = function () {
         return active;
-    }
+    };
 }
 
 /**
@@ -650,13 +691,13 @@ function PowerButtonObject(glContext) {
         currentTexturesArray.push(textureArray[0]);
 
         // Finally create the actual 3d object
-        button = new webgl.object3d(gl);
+        button = new WebGL.object3d(gl);
         if (!button.initGeometry(vertArray, texCoordsArray))
             console.log("Power Button error. Error initializing Geometry!");
         if (!button.assignTextures(currentTexturesArray))
             console.log("Power Button error. Error assigning Textures!");
         button.assignShaderProgram(shaderProgram);
-    }
+    };
 
     /**
      * This method is used to render the object onto the canvas
@@ -671,7 +712,7 @@ function PowerButtonObject(glContext) {
         // Draw the object
         if (!button.draw(translationMatrix))
             console.log("Power Button Drawing error!");
-    }
+    };
 
     /**
      * This method sets the relative position of the object
@@ -681,7 +722,7 @@ function PowerButtonObject(glContext) {
         buttonPosition.x = position[0];
         buttonPosition.y = position[1];
         buttonPosition.z = position[2];
-    }
+    };
 
     /**
      * This function is a click handler for the Power button object
@@ -698,7 +739,7 @@ function PowerButtonObject(glContext) {
 
         buttonPosition.z -= 0.05;
         setTimeout(depressButton, 100);
-    }
+    };
 
     /**
      * This function simply restores the button's z-axis position and resets clicked flag to false
@@ -755,13 +796,13 @@ function ResetButtonObject(glContext) {
         currentTexturesArray.push(textureArray[0]);
 
         // Finally create the actual 3d object
-        button = new webgl.object3d(gl);
+        button = new WebGL.object3d(gl);
         if (!button.initGeometry(vertArray, texCoordsArray))
             console.log("Reset Button error. Error initializing Geometry!");
         if (!button.assignTextures(currentTexturesArray))
             console.log("Reset Button error. Error assigning Textures!");
         button.assignShaderProgram(shaderProgram);
-    }
+    };
 
     /**
      * This method is used to render the object onto the canvas
@@ -776,7 +817,7 @@ function ResetButtonObject(glContext) {
         // Draw the object
         if (!button.draw(translationMatrix))
             console.log("Reset Button Drawing error!");
-    }
+    };
 
     /**
      * This method sets the relative position of the object
@@ -786,7 +827,7 @@ function ResetButtonObject(glContext) {
         buttonPosition.x = position[0];
         buttonPosition.y = position[1];
         buttonPosition.z = position[2];
-    }
+    };
 
     /**
      * This function is a click handler for the Start button object
@@ -804,7 +845,7 @@ function ResetButtonObject(glContext) {
 
         buttonPosition.z -= 0.05;
         setTimeout(depressButton, 100);
-    }
+    };
 
     /**
      * This function simply restores the button's z-axis position and resets clicked flag to false
@@ -880,13 +921,13 @@ function LabelObject(glContext) {
         }
 
         // Finally create the actual 3d object
-        label = new webgl.object3d(gl);
+        label = new WebGL.object3d(gl);
         if (!label.initGeometry(vertArray, texCoordsArray))
             console.log("Label error. Error initializing Geometry!");
         if (!label.assignTextures(currentTexturesArray))
             console.log("Label error. Error assigning Textures!");
         label.assignShaderProgram(shaderProgram);
-    }
+    };
 
     /**
      * This method is used to render the object onto the canvas
@@ -901,7 +942,7 @@ function LabelObject(glContext) {
         // Draw the object
         if (!label.draw(translationMatrix))
             console.log("Label Drawing error!");
-    }
+    };
 
     /**
      * This method sets the relative position of the object
@@ -911,7 +952,7 @@ function LabelObject(glContext) {
         labelPosition.x = position[0];
         labelPosition.y = position[1];
         labelPosition.z = position[2];
-    }
+    };
 
     /**
      * This method sets/changes the text of this label object
@@ -928,7 +969,7 @@ function LabelObject(glContext) {
             console.log("Label error. Error re-assigning new Textures!");
 
         return true;
-    }
+    };
 }
 
 /**
@@ -1000,13 +1041,13 @@ function NumberObject(glContext, size) {
         }
 
         // Finally create the actual 3d object
-        number = new webgl.object3d(gl);
+        number = new WebGL.object3d(gl);
         if (!number.initGeometry(vertArray, texCoordsArray))
             console.log("Number error. Error initializing Geometry!");
         if (!number.assignTextures(currentTexturesArray))
             console.log("Number error. Error assigning Textures!");
         number.assignShaderProgram(shaderProgram);
-    }
+    };
 
     /**
      * This method is used to render the object onto the canvas
@@ -1021,7 +1062,7 @@ function NumberObject(glContext, size) {
         // Draw the object
         if (!number.draw(translationMatrix))
             console.log("Number Drawing error!");
-    }
+    };
 
     /**
      * This method sets the relative position of the object
@@ -1031,7 +1072,7 @@ function NumberObject(glContext, size) {
         numberPosition.x = position[0];
         numberPosition.y = position[1];
         numberPosition.z = position[2];
-    }
+    };
 
     /**
      * This method sets/changes the value of this number object
@@ -1061,7 +1102,7 @@ function NumberObject(glContext, size) {
             console.log("Number error. Error re-assigning new Textures!");
 
         return true;
-    }
+    };
 }
 
 /**
@@ -1110,13 +1151,13 @@ function JackpotObject(glContext) {
         texCoordsArray.push(textureCoords);
 
         // Finally create the actual 3d object
-        image = new webgl.object3d(gl);
+        image = new WebGL.object3d(gl);
         if (!image.initGeometry(vertArray, texCoordsArray))
             console.log("Jackpot Image error. Error initializing Geometry!");
         if (!image.assignTextures(textureArray))
             console.log("Jackpot Image error. Error assigning Textures!");
         image.assignShaderProgram(shaderProgram);
-    }
+    };
 
     /**
      * This method is used to render the object onto the canvas
@@ -1131,7 +1172,7 @@ function JackpotObject(glContext) {
         // Draw the object
         if (!image.draw(translationMatrix))
             console.log("Jackpot Image Drawing error!");
-    }
+    };
 
     /**
      * This method sets the relative position of the object
@@ -1141,26 +1182,26 @@ function JackpotObject(glContext) {
         imagePosition.x = position[0];
         imagePosition.y = position[1];
         imagePosition.z = position[2];
-    }
+    };
 
     /**
      * This function simply restores the button's z-axis position and resets clicked flag to false
      */
-    this.activate = function() {
+    this.activate = function () {
         active = true;
 
         setTimeout(function () {
             active = false;
         }, 5000);
-    }
+    };
 
     /**
      * This function returns the active status of this object
      * @returns The active status of the jackpot object
      */
-    this.isActive = function() {
+    this.isActive = function () {
         return active;
-    }
+    };
 }
 
 
@@ -1225,7 +1266,6 @@ var textureURLs = {
     digitSix:   "img/digits_6.jpg",
     digitSeven: "img/digits_7.jpg",
     digitEight: "img/digits_8.jpg",
-    digitNine:  "img/digits_9.jpg",
     digitNine:  "img/digits_9.jpg",
     machine:    "img/machine_512.jpg",
     startGreen: "img/start_button_green_512.png",
@@ -1339,13 +1379,13 @@ function getShader(gl, shaderType) {
         success: function (data) {
             shaderProgram[shaderType] = data;
         }
-    })
+    });
 
     // create the appropriate shader, otherwise exit function and return null
     var shader;
-    if (shaderType == "fragment") {
+    if (shaderType === "fragment") {
         shader = gl.createShader(gl.FRAGMENT_SHADER);
-    } else if (shaderType == "vertex") {
+    } else if (shaderType === "vertex") {
         shader = gl.createShader(gl.VERTEX_SHADER);
     } else {
         return null;
@@ -1413,8 +1453,8 @@ this.webGLStart = function () {
     setTimeout(createObjects);
 
     /**
-     * This function calls itself repeatedly and tests if all the textures have finished loading. Once they have finished loading, this function
-     * creates all of the game objects and initializes the tick loop.
+     * This function calls itself repeatedly and tests if all the textures have finished loading. Once they have finished
+     * loading, this function creates all of the game objects and initializes the tick loop.
      */
     function createObjects() {
         // Test if all the textures have been loaded
@@ -1427,7 +1467,7 @@ this.webGLStart = function () {
 
             // Initialize all the drums
             var offset = -2.1 * parseInt(drumCount / 2);
-            if (drumCount % 2 == 0) {
+            if (drumCount % 2 === 0) {
                 offset += 2.1 / 2;
             }
             for (var drum = 0; drum < drumCount; drum++) {
@@ -1448,12 +1488,12 @@ this.webGLStart = function () {
             ], shaderProgram);
 
             // Initialize the bet buttons
-            var buttonXOffset = -0.82
-            var buttonYOffset = -0.69
+            var buttonXOffset = -0.82;
+            var buttonYOffset = -0.69;
             for (var i = 0; i < betButtonCount; i++) {
                 betButtons[i] = new ButtonObject(gl);
                 betButtons[i].create([loadedTextures[betButtonTextureNameList[i]]], shaderProgram);
-                if ((i % 2) == 0) {
+                if ((i % 2) === 0) {
                     betButtons[i].setPosition([buttonXOffset + 0.27 * parseInt(i / 2), buttonYOffset, 0.0]);
                 } else {
                     betButtons[i].setPosition([buttonXOffset + 0.27 * parseInt(i / 2), buttonYOffset - 0.18, 0.0]);
@@ -1469,7 +1509,7 @@ this.webGLStart = function () {
             // Initialize the stop buttons
             buttonXOffset = -0.56;
             buttonYOffset = -0.45;
-            for (var i = 0; i < drumCount; i++) {
+            for (i = 0; i < drumCount; i++) {
                 stopButtons[i] = new ButtonObject(gl);
                 stopButtons[i].create([loadedTextures.stopButtonGreen, loadedTextures.stopButtonRed], shaderProgram);
                 stopButtons[i].setPosition([buttonXOffset + 0.28 * i, buttonYOffset, 0.0]);
@@ -1494,7 +1534,7 @@ this.webGLStart = function () {
             // Create the charset list object
             var textureList = {};
             var character;
-            for (var i = 0; i < alphabetTextureNameList.lowercase.length; i++) {
+            for (i = 0; i < alphabetTextureNameList.lowercase.length; i++) {
                 character = String.fromCharCode('a'.charCodeAt(0) + i);
                 textureList[character] = loadedTextures[alphabetTextureNameList.lowercase[i]];
 
@@ -1614,7 +1654,7 @@ this.webGLStart = function () {
             setTimeout(createObjects, 100);
         }
     }
-}
+};
 
 /**
  * This function initializes all the textures and populates the object passed to it as parameter
@@ -1635,9 +1675,9 @@ function loadTextures(url) {
     texture.image = new Image();
 
     texture.image.onload = function () {
-        handleLoadedTexture(texture)
+        handleLoadedTexture(texture);
         texture.loaded = true;
-    }
+    };
 
     texture.image.src = url;
     texture.url = url;
@@ -1682,7 +1722,7 @@ function tick() {
     drawScene();
 
     // Disable the Start button if game state is active and bet is 0 (Don't allow the player to gamble with nothing)
-    if (currentGameState == gameState.Active) {
+    if (currentGameState === gameState.Active) {
         if (numberValues.playerBet === 0) {
             startButton.activate(false);
         } else {
@@ -1691,7 +1731,7 @@ function tick() {
     }
 
     // If the game state is spinning, then test the victory conditions every frame
-    if (currentGameState == gameState.Spinning) {
+    if (currentGameState === gameState.Spinning) {
         testWin();
     }
 }
@@ -1749,13 +1789,13 @@ function drawScene() {
         resetButton.draw(mvMatrix);
 
         // Draw the stop buttons for each drum
-        for (var i = 0; i < stopButtons.length; i++) {
+        for (i = 0; i < stopButtons.length; i++) {
             stopButtons[i].draw(mvMatrix);
         }
 
         // Draw the labels (except the welcome and credit labels, since those are only supposed to be drawn on the opening screen)
         $.each(labels, function (index) {
-            if ((index != "welcome") && (index != "madeBy")) {
+            if ((index !== "welcome") && (index !== "madeBy")) {
                 this.draw(mvMatrix);
             }
         });
@@ -1826,107 +1866,6 @@ function testWin() {
     }
 }
 
-
-/**
- * This anonymous callback function executes once the DOM finished loading.
- */
-$(document).ready(function () {
-    // Initiate the game
-    webGLStart();
-
-    // Mouse click handler for the canvas, outlining the click rectangles for all the buttons in the game
-    $("#webgl-canvas").click(function (e) {
-        var rect = this.getBoundingClientRect();
-        var mouse = {
-            x: (e.clientX - rect.left) / (rect.right - rect.left) * this.width,
-            y: (e.clientY - rect.top) / (rect.bottom - rect.top) * this.height
-        };
-
-        // Betting Button rectangles, only check if game is in "Active" state
-        if (currentGameState === gameState.Active) {
-            var startXOffset = 409;
-            var startYOffset = 699;
-            for (var i = 0; i < betButtons.length; i++) {
-                if ((i % 2) === 0) {
-                    if (((mouse.x > startXOffset + 112 * parseInt(i / 2)) && (mouse.x < (startXOffset + 106) + 112 * parseInt(i / 2)))
-                        && ((mouse.y > startYOffset) && (mouse.y < startYOffset + 66))) {
-                        betButtons[i].click();
-                    }
-                } else {
-                    if (((mouse.x > startXOffset + 112 * parseInt(i / 2)) && (mouse.x < (startXOffset + 106) + 112 * parseInt(i / 2)))
-                        && ((mouse.y > startYOffset + 74) && (mouse.y < startYOffset + 140))) {
-                        betButtons[i].click();
-                    }
-                }
-            }
-        }
-
-        // Stop Button rectangles, only test if game is in the "Spinning" state
-        if (currentGameState === gameState.Spinning) {
-            var startXOffset = 516;
-            var startYOffset = 600;
-            for (var i = 0; i < stopButtons.length; i++) {
-                if (((mouse.x > startXOffset + 116 * i) && (mouse.x < (startXOffset + 106) + 116 * i))
-                                    && ((mouse.y > startYOffset) && (mouse.y < startYOffset + 66))) {
-                    if (stopButtons[i].isActive()) {
-                        stopButtons[i].click();
-                        drums[i].stop();
-                    }
-                }
-            }
-        }
-
-        // Start Button rectangle, only test if game is in the "Active" state
-        if (currentGameState === gameState.Active) {
-            if (((mouse.x > 976) && (mouse.x < 1197)) && ((mouse.y > 699) && (mouse.y < 839))) {
-                if (startButton.isActive()) {
-                    startButton.click(drums);
-                    for (var i = 0; i < stopButtons.length; i++) {
-                        stopButtons[i].activate();
-                    }
-                }
-            }
-        } else if (currentGameState === gameState.Inactive) {
-            // Start Button rectangle, only test if game is in the "Inactive" state
-            if (((mouse.x > 700) && (mouse.x < 902)) && ((mouse.y > 387) && (mouse.y < 501))) {
-                // Start the game
-                startButton.click();
-            }
-        }
-
-        // Reset Button rectangle
-        if (((mouse.x > 390) && (mouse.x < 485)) && ((mouse.y > 396) && (mouse.y < 495))) {
-            resetButton.click();
-
-            // After resetting all the values, stop all the drums and reset the stop buttons as well
-            for (var drum = 0; drum < drums.length; drum++) {
-                drums[drum].reset();
-                stopButtons[drum].activate(false);
-            }
-        }
-
-        // Power Button rectangle
-        if (((mouse.x > 1110) && (mouse.x < 1210)) && ((mouse.y > 392) && (mouse.y < 503))) {
-            // Reset all values
-            powerButton.click();
-
-            // Stop all drums, and reset the stop buttons
-            for (var drum = 0; drum < drums.length; drum++) {
-                drums[drum].reset();
-                stopButtons[drum].activate(false);
-            }
-        }
-//        alert("X: " + mouse.x + "\nY: " + mouse.y);
-
-        // Finally change the custom cursor to the down pointer on click for 0.1 seconds,
-        // then reset it back to default mouse cursor.
-        var $this = $(this);
-        $this.css("cursor", "url('../img/pointerDown.cur'), auto");
-        setTimeout(function () {
-            $this.css("cursor", "");
-        }, 100);
-    });
-});
 
 
 

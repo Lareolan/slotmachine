@@ -1,6 +1,6 @@
 ﻿/// <reference path="jquery.js" />
 /**
- * This file contains various helper functions and win logic.
+ * This file contains game initialization code, mouse input code, and various helper functions and win logic.
  * Author:              Konstantin Koton
  * Filename:            main.js
  * Last Modified By:    Konstantin Koton
@@ -140,5 +140,113 @@ function getMultiplier(item) {
     }
     return result;
 }
+
+/**
+ * This anonymous callback function executes once the DOM finished loading.
+ */
+$(document).ready(function () {
+    // Initiate the game
+    webGLStart();
+
+    var wgl = new WebGL();
+
+    wgl.loadTextures(textureURLs /*{ test: "img/test_button_512.jpg" }*/, function () {
+        alert("loaded");
+    });
+
+    // Mouse click handler for the canvas, outlining the click rectangles for all the buttons in the game
+    $("#webgl-canvas").click(function (e) {
+        var rect = this.getBoundingClientRect();
+        var mouse = {
+            x: (e.clientX - rect.left) / (rect.right - rect.left) * this.width,
+            y: (e.clientY - rect.top) / (rect.bottom - rect.top) * this.height
+        };
+
+        // Betting Button rectangles, only check if game is in "Active" state
+        if (currentGameState === gameState.Active) {
+            var startXOffset = 409;
+            var startYOffset = 699;
+            for (var i = 0; i < betButtons.length; i++) {
+                if ((i % 2) === 0) {
+                    if (((mouse.x > startXOffset + 112 * parseInt(i / 2)) && (mouse.x < (startXOffset + 106) + 112 * parseInt(i / 2)))
+                        && ((mouse.y > startYOffset) && (mouse.y < startYOffset + 66))) {
+                        betButtons[i].click();
+                    }
+                } else {
+                    if (((mouse.x > startXOffset + 112 * parseInt(i / 2)) && (mouse.x < (startXOffset + 106) + 112 * parseInt(i / 2)))
+                        && ((mouse.y > startYOffset + 74) && (mouse.y < startYOffset + 140))) {
+                        betButtons[i].click();
+                    }
+                }
+            }
+        }
+
+        // Stop Button rectangles, only test if game is in the "Spinning" state
+        if (currentGameState === gameState.Spinning) {
+            var startXOffset = 516;
+            var startYOffset = 600;
+            for (var i = 0; i < stopButtons.length; i++) {
+                if (((mouse.x > startXOffset + 116 * i) && (mouse.x < (startXOffset + 106) + 116 * i))
+                                    && ((mouse.y > startYOffset) && (mouse.y < startYOffset + 66))) {
+                    if (stopButtons[i].isActive()) {
+                        stopButtons[i].click();
+                        drums[i].stop();
+                    }
+                }
+            }
+        }
+
+        // Start Button rectangle, only test if game is in the "Active" state
+        if (currentGameState === gameState.Active) {
+            if (((mouse.x > 976) && (mouse.x < 1197)) && ((mouse.y > 699) && (mouse.y < 839))) {
+                if (startButton.isActive()) {
+                    startButton.click(drums);
+                    for (var i = 0; i < stopButtons.length; i++) {
+                        stopButtons[i].activate();
+                    }
+                }
+            }
+        } else if (currentGameState === gameState.Inactive) {
+            // Start Button rectangle, only test if game is in the "Inactive" state
+            if (((mouse.x > 700) && (mouse.x < 902)) && ((mouse.y > 387) && (mouse.y < 501))) {
+                // Start the game
+                startButton.click();
+            }
+        }
+
+        // Reset Button rectangle
+        if (((mouse.x > 390) && (mouse.x < 485)) && ((mouse.y > 396) && (mouse.y < 495))) {
+            resetButton.click();
+
+            // After resetting all the values, stop all the drums and reset the stop buttons as well
+            for (var drum = 0; drum < drums.length; drum++) {
+                drums[drum].reset();
+                stopButtons[drum].activate(false);
+            }
+        }
+
+        // Power Button rectangle
+        if (((mouse.x > 1110) && (mouse.x < 1210)) && ((mouse.y > 392) && (mouse.y < 503))) {
+            // Reset all values
+            powerButton.click();
+
+            // Stop all drums, and reset the stop buttons
+            for (var drum = 0; drum < drums.length; drum++) {
+                drums[drum].reset();
+                stopButtons[drum].activate(false);
+            }
+        }
+        //        alert("X: " + mouse.x + "\nY: " + mouse.y);
+
+        // Finally change the custom cursor to the down pointer on click for 0.1 seconds,
+        // then reset it back to default mouse cursor.
+        var $this = $(this);
+        $this.css("cursor", "url('../img/pointerDown.cur'), auto");
+        setTimeout(function () {
+            $this.css("cursor", "");
+        }, 100);
+    });
+});
+
 
 

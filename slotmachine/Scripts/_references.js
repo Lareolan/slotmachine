@@ -6,3 +6,4 @@
 /// <reference path="~/Scripts/main.js" />
 /// <reference path="~/Scripts/webgl-utils.js" />
 /// <reference path="~/Scripts/webgl-objects.js" />
+/// <reference path="~/Scripts/webgl-loader.js" />
